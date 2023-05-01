@@ -1,0 +1,184 @@
+version: "3"
+ 
+services:
+
+  # Services
+  #
+  twingate:
+    image: twingate/connector:1
+    # build:
+    #   context: ./
+    environment:
+      - TENANT_URL=${TENANT_URL}
+      - ACCESS_TOKEN=${ACCESS_TOKEN}
+      - REFRESH_TOKEN=${REFRESH_TOKEN}
+      - TWINGATE_LABEL_HOSTNAME=${TWINGATE_LABEL_HOSTNAME}
+  
+  # Servers
+  #
+  alpine-server:
+    build:
+      context: ./
+      dockerfile: ./server/Alpine/.Dockerfile
+      args:
+        ALPINE_IMAGE: ${ALPINE_IMAGE}
+        ALPINE_DIGEST : ${ALPINE_DIGEST}
+      
+    depends_on:
+      - ${SERVICE}
+
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./server/Alpine/app:/app
+
+    tty: true
+    
+    environment:
+      - SERVER_MODE=${SERVER_MODE}
+      - SERVER_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+
+  # Clients
+  #
+  windows-client:
+    build:
+      context: ./
+      dockerfile: ./client/windows/.Dockerfile
+      args:
+        WINDOWS_IMAGE: ${WINDOWS_IMAGE}
+        WINDOWS_DIGEST : ${WINDOWS_DIGEST}
+    
+    depends_on:
+      - ${SERVICE}
+
+    volumes:
+      - ./client/windows/app:/app
+
+    environment:
+      - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+
+
+  android-client:
+    build:
+      context: ./
+      dockerfile: ./client/android/.Dockerfile
+      args:
+        ANDROID_IMAGE: ${ANDROID_IMAGE}
+        ANDROID_DIGEST : ${ANDROID_DIGEST}
+    
+    depends_on:
+      - ${SERVICE}
+
+    volumes:
+      - ./clientandroid/app:/app
+
+    environment:
+      - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+
+  
+  ios-client:
+    build:
+      context: ./
+      dockerfile: ./client/ios/.Dockerfile
+      args:
+        IOS_IMAGE: ${IOS_IMAGE}
+        IOS_DIGEST : ${IOS_DIGEST}
+
+    depends_on:
+      - ${SERVICE}
+
+    volumes:
+      - ./client/ios/app:/app
+
+    environment:
+      - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+
+
+  osx-client:
+    build:
+      context: ./
+      dockerfile: ./client/osx/.Dockerfile
+      args:
+        OSX_IMAGE: ${OSX_IMAGE}
+        OSX_DIGEST : ${OSX_DIGEST}
+    
+    depends_on:
+      - ${SERVICE}
+
+    volumes:
+      - ./client/osx/app:/app
+
+    environment:
+      - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+
+
+  ubuntu-client:
+    build:
+      context: ./
+      dockerfile: ./client/ubuntu/.Dockerfile
+      args:
+        UBUNTU_IMAGE : ${UBUNTU_IMAGE}
+        UBUNTU_DIGEST : ${UBUNTU_DIGEST}
+        CLIENT_REPO : ${CLIENT_REPO}
+        GITHUB_TOKEN : ${GITHUB_TOKEN}
+        GITHUB_USERNAME : ${GITHUB_USERNAME}
+    
+    depends_on:
+      - ${SERVICE}
+
+    volumes:
+      - ./client/ubuntu/app:/app
+    
+    environment:
+      - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
+    
+    command: /bin/bash
+    tty: true
+
+# Volumes
+#
+volumes:
+  server:
+  client:
+
+# Example composition
+#======================
+# # Set the operating mode
+# SERVER_MODE="normal" CLIENT_MODE="normal"\ 
+#
+# # Set the version digest (aquired from hub.docker.com)
+# SERVER_DIGEST="@sha:1234abcd..." IOS_DIGEST="@sha:1234abcd..." \
+#
+# # Set the target repos
+# SERVER_REPO="https://github.com/..." CLIENT_REPO="https://github.com/..."\
+#
+# # Compose the testbench
+# docker compose up server ios-client
+#
+# This will start both a server and IOS client container connected on a network
+#
+# docker compose run -e SERVER_MODE="normal" CLIENT_MODE="normal"\ 
+# -e SERVER_DIGEST="sha256:b6ca290b6b4cdcca5b3db3ffa338ee0285c11744b4a6abaa9627746ee3291d8d" -e UBNUTU_DIGEST="sha256:7a57c69fe1e9d5b97c5fe649849e79f2cfc3bf11d10bbd5218b4eb61716aebe6"
+# -e SERVER_REPO="https://gist.github.com/BoeJaker/86659a8e647496a5f5b24b33048f739a" -e CLIENT_REPO="https://gist.github.com/BoeJaker/6d30208bd42b3769f593a9e95e29a873"\
+# server ubuntu-client
+#
+#You can also set environment variables via the .env file, see env.dummy for more info
+#
+# See REAME.md for more information
