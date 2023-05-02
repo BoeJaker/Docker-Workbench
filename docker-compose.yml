@@ -3,7 +3,7 @@ version: "3"
 services:
 
   # Services
-  #
+  # ============================
   twingate:
     image: twingate/connector:1
     environment:
@@ -24,8 +24,57 @@ services:
   antivirus:
     image: rordi/docker-antivirus
 
+  prometheus:
+    image: prom/prometheus
+
+    depends_on:
+      - ${SERVICE}  
+    ports:
+      - "9090:9090"
+    volumes: 
+      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  vnc:
+    image: dorowu/ubuntu-desktop-lxde-vnc
+
+    depends_on: 
+      - ${SERVICE}
+
+    ports:
+    - "6080:80"
+    
+    volumes:
+      - /dev/shm:/dev/shm
+
+    # ports:
+    #   - "6079:80"
   # Servers
-  #
+  # ==============================
+  file-server:
+    build:
+      context: ./
+      dockerfile: ./server/file_server/.Dockerfile
+      args:
+        ALPINE_IMAGE: ${ALPINE_IMAGE}
+        ALPINE_DIGEST : ${ALPINE_DIGEST}
+        SERVER_REPO : ${SERVER_REPO}
+        GITHUB_TOKEN : ${GITHUB_TOKEN}
+        GITHUB_USERNAME : ${GITHUB_USERNAME}
+
+    depends_on:
+      - ${SERVICE}
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./server/file/app:/app
+
+    tty: true
+    
+    environment:
+      - SERVER_MODE=${SERVER_MODE}
+
   alpine-server:
     build:
       context: ./
@@ -33,7 +82,32 @@ services:
       args:
         ALPINE_IMAGE: ${ALPINE_IMAGE}
         ALPINE_DIGEST : ${ALPINE_DIGEST}
-        SERVER_REPO : ${CLIENT_REPO}
+        SERVER_REPO : ${SERVER_REPO}
+        GITHUB_TOKEN : ${GITHUB_TOKEN}
+        GITHUB_USERNAME : ${GITHUB_USERNAME}
+
+    depends_on:
+      - ${SERVICE}
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - ./server/alpine/app:/app
+
+    tty: true
+    
+    environment:
+      - SERVER_MODE=${SERVER_MODE}
+
+  ubnuntu-server:
+    build:
+      context: ./
+      dockerfile: ./server/ubnutu/.Dockerfile
+      args:
+        UBUNTU_SERVER_IMAGE: ${UBUNTU_SERVER_IMAGE}
+        UBUNTU_SERVER_DIGEST : ${UBUNTU_SERVER_DIGEST}
+        SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
 
@@ -51,9 +125,8 @@ services:
     environment:
       - SERVER_MODE=${SERVER_MODE}
 
-
   # Clients
-  #
+  # ==============================
   windows-client:
     build:
       context: ./
@@ -149,7 +222,7 @@ services:
         GITHUB_USERNAME : ${GITHUB_USERNAME}
      
     ports:
-      - "8000:8000"
+      - "80:80"
     
     depends_on:
       - ${SERVICE}
@@ -159,12 +232,15 @@ services:
     
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
+      - CLIENT_REPO=${CLIENT_REPO}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - GITHUB_USERNAME=${GITHUB_USERNAME}
     
-    command: /bin/bash
+    # command: /bin/bash
     tty: true
 
 # Volumes
-#
+# ==============================
 volumes:
   server:
   client:

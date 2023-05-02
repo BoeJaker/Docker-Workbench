@@ -54,15 +54,8 @@ without specifying which clients, servers or services you would like
     UBUNTU_IMAGE=fredblgr/ubuntu-novnc 
     UBUNTU_DIGEST=''    
 
-These variables set the image that each container is built with, defaults are set for each in the respective dockerfile, but you can customize which flavour of container you are building with by settign it in .env or at build time on the command line.
+These variables set the image that each container is built with. Defaults are set for each in the respective dockerfile,you can set the digest and image of the container you are building with by setting it in .env or at build time on the command line.  
 <br>
-
-### <u>Execution Mode</u>
-
-    CLIENT_MODE=''  
-    SERVER_MODE=''   
-<br>
-Execution modes are examples of environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
 
 ### <u>GitHub</u>
 
@@ -82,7 +75,17 @@ Execution modes are examples of environment variables intended to augment the ex
   
 These variables must be set in a variable called .env in the project root,  or with 'docker compose run' using the -e flag. See env.dummy in the root directory for an example of a .env file.  
 <br>  
+
+### <u>Pass-through Environment Variables</u>
+
+    CLIENT_MODE=''  
+    SERVER_MODE=''   
+
+These environment variables pass though to the running containers. Execution modes are examples of pass-through environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
+
+<br>
 <br>  
+
 # Server, Client and Service Containers
 
 This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   

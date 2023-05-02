@@ -1,9 +1,12 @@
 ARG ALPINE_IMAGE="alpine"
 ARG ALPINE_DIGEST="latest"
-ARG SERVER_REPO
 
 FROM $ALPINE_IMAGE:$ALPINE_DIGEST
 
+ARG GITHUB_USERNAME
+ARG GITHUB_TOKEN
+ARG SERVER_REPO
+
 RUN apk update && \
     apk add python3 git && \
-    git clone ${SERVER_REPO}
+    git clone "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@${CLIENT_REPO}" /app
