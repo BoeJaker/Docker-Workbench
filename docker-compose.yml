@@ -50,13 +50,13 @@ services:
     #   - "6079:80"
   # Servers
   # ==============================
-  file-server:
+  ftp:
     build:
       context: ./
-      dockerfile: ./server/file_server/.Dockerfile
+      dockerfile: ./services/ftp/.Dockerfile
       args:
-        ALPINE_IMAGE: ${ALPINE_IMAGE}
-        ALPINE_DIGEST : ${ALPINE_DIGEST}
+        UBUNTU_IMAGE: ${UBUNTU_IMAGE}
+        UBUNTU_DIGEST : ${UBUNTU_DIGEST}
         SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
@@ -65,11 +65,11 @@ services:
       - ${SERVICE}
 
     ports:
-      - "8000:8000"
+      - "8100:80"
 
     volumes:
-      - ./server/file/app:/app
-
+      - "/media/boejaker/New Volume/Games:/Games"
+    command: /bin/bash
     tty: true
     
     environment:
