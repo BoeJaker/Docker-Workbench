@@ -145,9 +145,9 @@ services:
     
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-      - CLIENT_REPO=${CLIENT_REPO}
-      - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - GITHUB_USERNAME=${GITHUB_USERNAME}
+      # - CLIENT_REPO=${CLIENT_REPO}
+      # - GITHUB_TOKEN=${GITHUB_TOKEN}
+      # - GITHUB_USERNAME=${GITHUB_USERNAME}
     
     command: /bin/bash
     tty: true

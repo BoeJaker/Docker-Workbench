@@ -12,19 +12,20 @@ Each dockerfile contains commands to bootstrap an its associated image, install 
 
 ## Servers
 
-servers are
+Servers are containers configured to serve content to clients and the host system. A website server such as flask or database like postgres would be an example.
 
 <br>
 
 ## Clients
 
-clinets are
+Clients are containers configured to receive content and send requests to server containers. Each OS has its own client, there is a client dockerfile for windows, linux, mac and phone operating systems.
+Multiple identical clients can be built to simulate real world networks and loads.
 
 <br>
 
 ## Services
 
-Services are
+Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
 
 <br>
 
@@ -41,18 +42,20 @@ without specifying which clients, servers or services you would like
 
 
 ### <u>Docker Images & Digests</u>    
-    ALPINE_IMAGE="alpine"  
+    ALPINE_IMAGE=alpine
     ALPINE_DIGEST=''  
 
-    WINDOWS_IMAGE="mcr.microsoft.com/windows"  
+    WINDOWS_IMAGE=mcr.microsoft.com/windows  
     WINDOWS_DIGEST=''  
 
     ANDROID_DIGEST=''  
     OSX_DIGEST=''  
     IOS_DIGEST=''  
 
-    UBUNTU_IMAGE="fredblgr/ubuntu-novnc"  
+    UBUNTU_IMAGE=fredblgr/ubuntu-novnc 
     UBUNTU_DIGEST=''    
+
+These variables set the image that each container is built with, defaults are set for each in the respective dockerfile, but you can customize which flavour of container you are building with by settign it in .env or at build time on the command line.
 <br>
 
 ### <u>Execution Mode</u>
@@ -60,13 +63,14 @@ without specifying which clients, servers or services you would like
     CLIENT_MODE=''  
     SERVER_MODE=''   
 <br>
+Execution modes are examples of environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
 
 ### <u>GitHub</u>
 
-    GITHUB_TOKEN="asd_K...WE69"  
-    GITHUB_USERNAME="Your_User"  
-    CLIENT_REPO="github.com/Your_User/Your_Git.git"  
-    SERVER_REPO='github.com/Your_User/Your_Git.git'    
+    GITHUB_TOKEN=asd_K...WE69 
+    GITHUB_USERNAME=Your_User  
+    CLIENT_REPO=github.com/Your_User/Your_Git.git  
+    SERVER_REPO=github.com/Your_User/Your_Git.git    
 <br>
 
 ### <u>Twingate</u>
@@ -115,8 +119,8 @@ There are also built in network services that can be enabled to perform task suc
 
 Each of these images will be set up to download and test the repositories prescribed in the environment variables.   
 
-</br>  
-</br>  
+<br>   
+<br>  
   
 # Build Command Syntax  
 
@@ -137,7 +141,11 @@ You can also run just a client with the following, substituting [client] for the
 
     docker compose build [client]
 
-    docker compose up [client]    
+    docker compose up [client]   
+
+You can also run an interactive session with
+
+    docker-compose run -it [client/server] 
 <br>
 
 ## Network Build
@@ -209,3 +217,27 @@ to restore the project
 
     docker-compose load -i my-project.tar
 
+<br>  
+
+# Windows Containers
+To run windows contianers you must first switch docker to windows mode, this can be done by executing the following   
+
+    & $Env:ProgramFiles\Docker\Docker\DockerCli.exe -SwitchDaemon
+
+This can also be achieved by right clicking the docker tray icon and selecting 'Switch to windows containers'
+
+<br>   
+
+# Useful flags
+
+To help calculate system requirements you can use the verbose flag 
+    
+    docker-compose build --verbose
+
+To build with no cache - useful for debugging environment variables and build commands
+
+    docker-compose build --no-cache
+
+To view the output of echo statements in the build process, this can help you debug misconfigurations
+
+    docker-compose build --progress-plain
