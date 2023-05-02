@@ -51,29 +51,35 @@ services:
   # Servers
   # ==============================
   ftp:
-    build:
-      context: ./
-      dockerfile: ./services/ftp/.Dockerfile
-      args:
-        UBUNTU_IMAGE: ${UBUNTU_IMAGE}
-        UBUNTU_DIGEST : ${UBUNTU_DIGEST}
-        SERVER_REPO : ${SERVER_REPO}
-        GITHUB_TOKEN : ${GITHUB_TOKEN}
-        GITHUB_USERNAME : ${GITHUB_USERNAME}
-
-    depends_on:
-      - ${SERVICE}
-
+    image: delfer/alpine-ftp-server
     ports:
-      - "8100:80"
-
+      - "21:21"
+      - " 21000-21010:21000-21010"
     volumes:
       - "/media/boejaker/New Volume/Games:/Games"
-    command: /bin/bash
-    tty: true
+    # build:
+    #   context: ./
+    #   dockerfile: ./services/ftp/.Dockerfile
+    #   args:
+    #     UBUNTU_IMAGE: ${UBUNTU_IMAGE}
+    #     UBUNTU_DIGEST : ${UBUNTU_DIGEST}
+    #     SERVER_REPO : ${SERVER_REPO}
+    #     GITHUB_TOKEN : ${GITHUB_TOKEN}
+    #     GITHUB_USERNAME : ${GITHUB_USERNAME}
+
+    # depends_on:
+    #   - ${SERVICE}
+
+    # ports:
+    #   - "8100:80"
+
+    # volumes:
+    #   - "/media/boejaker/New Volume/Games:/Games"
+    # command: /bin/bash
+    # tty: true
     
-    environment:
-      - SERVER_MODE=${SERVER_MODE}
+    # environment:
+    #   - SERVER_MODE=${SERVER_MODE}
 
   alpine-server:
     build:
