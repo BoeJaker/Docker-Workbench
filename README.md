@@ -1,8 +1,7 @@
 # Docker GitHub Workbench
-Test platform for multiple container configurations.  
-When a container is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
+A docker-compose for bootstrapping virtual networks, such as test platforms for code, virtualized file servers, virtualized computer science labs.
 
-It can also be used to bootstrap a virtual home network.
+When a container is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
 <br>
 
 ## Overview
@@ -110,11 +109,12 @@ The containers are named as follows:
 There are also built in network services that can be enabled to perform task such as filter traffic or log packets.
 
 ## Services
-    twingate        # Essentially a VPN into the network
-    vpn             # Traditional VPN
-    dns-sinkhole    # DNS filtering  - ad-blocking
-    packet-capture  # Packet traffic log collection
-    log-collector   # Operating system log collection
+    instantlinux/samba-dc   # Domain Controller
+    twingate                # Split tunnel
+    vpn                     # Traditional VPN
+    dns-sinkhole            # DNS filtering  - ad-blocking
+    packet-capture          # Packet traffic log collection
+    log-collector           # Operating system log collection
 
 
 Each of these images will be set up to download and test the repositories prescribed in the environment variables.   
@@ -240,4 +240,38 @@ To build with no cache - useful for debugging environment variables and build co
 
 To view the output of echo statements in the build process, this can help you debug misconfigurations
 
-    docker-compose build --progress-plain
+    docker-compose build --progress-plain  
+
+<br> 
+
+# Twingate Setup
+
+### What is twingate?
+Twingate is a cloud-based network security platform that provides secure access to private networks, cloud applications, and other resources for remote workers and contractors. Twingate uses a zero-trust model to authenticate users and devices and enforce granular access policies for each resource, ensuring that only authorized users can access specific resources based on their role, device, location, and other factors. Twingate uses lightweight software components called "Connectors" to provide secure access to private networks and cloud resources without requiring a VPN or opening ports on firewalls. Twingate also provides centralized visibility and control over user activity and resource access across multiple environments, including on-premises, cloud, and hybrid environments.
+
+Twingate has been included to serve as a simple, secure RAS.  
+
+<br> 
+
+### Create a Twingate network:   
+A network is a logical container that represents the resources you want to secure. You can create a network by logging in to your Twingate account and navigating to the Networks page. Click on the "Create Network" button and follow the steps to create a new network.  
+
+<br> 
+
+### Set up a Connector:   
+A Connector is a lightweight software component that allows your Docker Compose application to securely connect to your Twingate network. You can set up a Connector by navigating to the Connectors page and clicking on the "Add Connector" button. Follow the steps to set up a Connector and make sure to note the Connector's ID and Secret.  
+
+<br> 
+
+### Setting up a Resource in Twingate:   
+this involves creating an access policy that defines the conditions under which users can access the resource. Navigate to the Resources page on the Twingate web console and click "Add Resource". Provide the necessary details for the resource, including the IP address, hostname, or URL. Next, create an access policy for the resource by clicking "Add Access Policy". Specify the users or groups that should have access to the resource, and configure any additional conditions, such as time of day or location. Once you have configured the access policy, save it and activate it.   
+
+<br>   
+
+### Build and Run With docker:   
+You will need to add environment variables that provide the Twingate Connector configuration details. These variables include the Connector ID, Connector Secret, and the name of your Twingate network. The resource is now set up and ready for users to access securely through the Twingate network.  
+
+<br> 
+
+### Connect your Docker Compose Application to Twingate:   
+Finally you can download the Twingate client and log in and select the network you created in step 1. Once signed in you can use the alias set when setting up the resource such as my_network.int to access the resource, try entering the alias into the browser.
