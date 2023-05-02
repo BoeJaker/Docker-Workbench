@@ -13,15 +13,15 @@ RUN echo ${GITHUB_USERNAME}
 RUN echo ${GITHUB_TOKEN}
 RUN echo ${CLIENT_REPO}
 
-RUN --mount=type=cache,id=apt-get-cache,target=/var/cache/apt \
-    apt-get update && \
+RUN apt-get update && \
     apt install git pip -y && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # RUN git clone "https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@${CLIENT_REPO}" /app
-RUN ls /app
+# RUN ls /app
 
 RUN pip install -r requirements.txt || echo "Requirements file not found"
 
 COPY /client/ubuntu/init.sh /
+RUN chmod +x /init.sh
 ENTRYPOINT [ "/init.sh","/bin/bash" ]
