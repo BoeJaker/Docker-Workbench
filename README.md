@@ -13,6 +13,15 @@ Each dockerfile contains commands to bootstrap an its associated image, install 
 
 Servers are containers configured to serve content to clients and the host system. A website server such as flask or database like postgres would be an example.
 
+### Alpine
+### FTP
+ports:  21:21 
+        21000-21010:21000-21010
+### Postgres
+
+### ubuntu
+    ports: 8000:8000
+
 <br>
 
 ## Clients
@@ -20,11 +29,28 @@ Servers are containers configured to serve content to clients and the host syste
 Clients are containers configured to receive content and send requests to server containers. Each OS has its own client, there is a client dockerfile for windows, linux, mac and phone operating systems.
 Multiple identical clients can be built to simulate real world networks and loads.
 
+
+### Windows
+### Ubuntu
+### OSX
+### IOS
+### Andoid
+
 <br>
 
 ## Services
 
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
+
+### VNC
+Ports: 6080:80
+### VPN
+### Twingates
+### Prometheus
+Ports: 9090:9090  
+
+### Andoid
+
 <br>
 
 ## Warnings
@@ -87,9 +113,9 @@ These environment variables pass though to the running containers.
 <br>
 <br>  
 
-# Server, Client and Service Containers
+# Server, Client and Service Names
 
-This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
+These can be found in the docker-compose as service definitions. This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
 The containers are named as follows:
 
 ## Servers  
@@ -99,8 +125,10 @@ The containers are named as follows:
     debian-server
     fedora-server
     centos-server
-    nginx-server
-   
+    nginx-server  
+
+<br>   
+
 ## Clients  
     windows-client   
     android-client   
@@ -109,10 +137,14 @@ The containers are named as follows:
     ubuntu-client
     # The below have not been implemented 
     kali-client
+    debian-client
 
-There are also built in network services that can be enabled to perform task such as filter traffic or log packets.
+
+<br>   
 
 ## Services
+Built in network services that can be enabled to perform task such as filter traffic or log packets.  
+
     instantlinux/samba-dc   # Domain Controller
     twingate                # Split tunnel
     vpn                     # Traditional VPN
@@ -120,50 +152,51 @@ There are also built in network services that can be enabled to perform task suc
     packet-capture          # Packet traffic log collection
     log-collector           # Operating system log collection
 
-
-Each of these images will be set up to download and test the repositories prescribed in the environment variables.   
+  
 
 <br>   
 <br>  
   
 # Build Command Syntax  
-COntainers can be built one at a time using consecutive simple build statements.
-Alternatively users can opt to build all the clients, servers and services they would like with a single command using a complex build statement.
+Containers can be built one at a time using consecutive simple build statements.
+Alternatively users can opt to build all the clients, servers and services they would like with a single command using a complex build statement.  
+<br>  
+
 ## Simple Build
 To build a standalone client, server or service execute the following, substituting [client|server|service] for the name of the client, server or service you would like to run.
 
-    docker compose build [client|server|service]
+    docker-compose build [client|server|service]
 
-    docker compose up [server]
+    docker-compose up [client|server|service]
 
 With the values filled it it would look like the following
 
-    docker compose build alpine-server
+    docker-compose build alpine-server
 
-     docker compose up alpine-server   
+    docker-compose up alpine-server   
 
 You can also run an interactive session with
 
-    docker-compose run -it [client/server] 
+    docker-compose run -it [client|server|service] 
 
 <br>
 
 ## Complex Build
 It is possible to build a virtual network of servers and clients
 
-    docker compose build [server] [client 1] [client 2] [service]  
+    docker-compose build [server] [client 1] [client 2] [service]  
 
-    docker compose up [server] [client 1] [client 2] [service]  
+    docker-compose up [server] [client 1] [client 2] [service]  
 
 With the values filled it it would look like 
 
-    docker compose build alpine-server windows-client ubuntu-client  
+    docker-compose build alpine-server windows-client ubuntu-client  
 <br>
 
 ## Ad-hoc Environment Variables
 Alternatively you can use to specify adhoc environment variables
 
-    docker compose run -e [ENVIRONMENT_VARIABLE_1] -e [ENVIRONMENT_VARIABLE_2] [server] [client 1] [service 1]  
+    docker-compose run -e [ENVIRONMENT_VARIABLE_1] -e [ENVIRONMENT_VARIABLE_2] [server] [client 1] [service 1]  
 
 You can specify any combination of servers, hosts and services, that have been defined in the compose file  
 
