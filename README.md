@@ -25,7 +25,6 @@ Multiple identical clients can be built to simulate real world networks and load
 ## Services
 
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
-
 <br>
 
 ## Warnings
@@ -39,8 +38,10 @@ without specifying which clients, servers or services you would like
 
 # Environment Variables  
 
-
+These variables must be set in a variable called .env in the project root,  or with 'docker compose run' using the -e flag. See env.dummy in the root directory for an example of a .env file.  
 ### <u>Docker Images & Digests</u>    
+These environment variables do not need to be set. Defaults are set in the .Dockerfile
+
     ALPINE_IMAGE=alpine
     ALPINE_DIGEST=''  
 
@@ -58,6 +59,7 @@ These variables set the image that each container is built with. Defaults are se
 <br>
 
 ### <u>GitHub</u>
+These environment variables must be set to use git
 
     GITHUB_TOKEN=asd_K...WE69 
     GITHUB_USERNAME=Your_User  
@@ -66,22 +68,21 @@ These variables set the image that each container is built with. Defaults are se
 <br>
 
 ### <u>Twingate</u>
+These environment variables must be set to use twingate
 
     TENANT_URL="https://your_network.twingate.com"   
     ACCESS_TOKEN="sixXa1L...5MaMdgJte8a281xg"  
     REFRESH_TOKEN="824_Q....NBQO"  
     TWINGATE_LABEL_HOSTNAME="\`hostname\`"  
-
-  
-These variables must be set in a variable called .env in the project root,  or with 'docker compose run' using the -e flag. See env.dummy in the root directory for an example of a .env file.  
 <br>  
 
 ### <u>Pass-through Environment Variables</u>
+These environment variables pass though to the running containers.
 
     CLIENT_MODE=''  
     SERVER_MODE=''   
 
-These environment variables pass though to the running containers. Execution modes are examples of pass-through environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
+ Execution modes are examples of pass-through environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
 
 <br>
 <br>  
@@ -126,11 +127,12 @@ Each of these images will be set up to download and test the repositories prescr
 <br>  
   
 # Build Command Syntax  
-
+COntainers can be built one at a time using consecutive simple build statements.
+Alternatively users can opt to build all the clients, servers and services they would like with a single command using a complex build statement.
 ## Simple Build
-To build a standalone server execute the following, substituting [server] for the name of the server container you would like to run.
+To build a standalone client, server or service execute the following, substituting [client|server|service] for the name of the client, server or service you would like to run.
 
-    docker compose build [server]
+    docker compose build [client|server|service]
 
     docker compose up [server]
 
@@ -138,51 +140,24 @@ With the values filled it it would look like the following
 
     docker compose build alpine-server
 
-     docker compose up alpine-server  
-     
-You can also run just a client with the following, substituting [client] for the name of the client container you would like to run.
-
-    docker compose build [client]
-
-    docker compose up [client]   
+     docker compose up alpine-server   
 
 You can also run an interactive session with
 
     docker-compose run -it [client/server] 
+
 <br>
 
-## Network Build
+## Complex Build
 It is possible to build a virtual network of servers and clients
 
-    docker compose build [server] [client 1] [client 2]  
+    docker compose build [server] [client 1] [client 2] [service]  
 
-    docker compose up [server] [client 1] [client 2]  
+    docker compose up [server] [client 1] [client 2] [service]  
 
 With the values filled it it would look like 
 
     docker compose build alpine-server windows-client ubuntu-client  
-<br>
-
-## Service Build
-
-Services are pre-built images that perform a network function such as VPN, packet capture, logging and more.
-
-Services can be defined in the .env file, in which case the will be built as dependencies of any other container built.
-
-Another way to build a service is to define add it, ad-hoc, to the build instruction.
-
-## Ad-Hoc Service Build
-
-    docker compose build [server] [client] [service]  
-
-    docker compose up [server] [client] [service]  
-
-With the values filled it it would look like 
-
-    docker compose build alpine-server windows-client VPN
-
-This would build both an alpine server, windows client alongside a VPN service.
-
 <br>
 
 ## Ad-hoc Environment Variables
