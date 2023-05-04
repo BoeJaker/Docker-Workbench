@@ -6,5 +6,5 @@ python3 -m http.server 80 &
 
 while true; do
     git pull &
-    sleep 30m
+    sleep 240m
 done 
