@@ -24,4 +24,7 @@ RUN apt-get update && \
 
 COPY /client/ubuntu/init.sh /
 RUN chmod +x /init.sh
+
+HEALTHCHECK CMD curl --fail http://localhost:80 || exit 1   
+
 ENTRYPOINT [ "/init.sh","/bin/bash" ]
