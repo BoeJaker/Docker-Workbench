@@ -5,7 +5,9 @@ When a container is built it creates a shared app folder and downloads the lates
 <br>
 
 ## Overview
-Each dockerfile contains commands to bootstrap an its associated image, install a git package, currently it is installed to /app  
+Each dockerfile contains commands to bootstrap an its associated image, install a git package, currently it is installed to /app. 
+
+These can be found in the docker-compose as service definitions. This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
 
 <br>
 
@@ -14,28 +16,53 @@ Each dockerfile contains commands to bootstrap an its associated image, install 
 Servers are containers configured to serve content to clients and the host system. A website server such as flask or database like postgres would be an example.
 
 ### Alpine
+Name: alpine-server  
+A 'vanilla' Alpine server, lightweight and fast. Test linux sever code in a deterministic environment.
 ### FTP
-ports:  21:21 
-        21000-21010:21000-21010
+Name: ftp  
+Ports:    
+    21:21   
+    21000-21010:21000-21010   
+An ftp server using Alpine. Launch FTP servers or. Test linux sever code in a deterministic environment. 
 ### Postgres
+Name: postgres  
 
-### ubuntu
-    ports: 8000:8000
+### Ubuntu
+Name: ubuntu-server  
+Ports: 80:80  
+Launch a ubuntu server or test ubuntu server code in a deterministic environment.
 
 <br>
 
 ## Clients
 
-Clients are containers configured to receive content and send requests to server containers. Each OS has its own client, there is a client dockerfile for windows, linux, mac and phone operating systems.
+Clients are containers configured to receive content, send requests to servers and use service containers. Each OS has a respective client container, these include windows, linux, mac, IOS and android operating systems.
 Multiple identical clients can be built to simulate real world networks and loads.
 
 
 ### Windows
-### Ubuntu
-### OSX
-### IOS
-### Andoid
+Name: windows-client  
+Test windows client code in a deterministic environment.
+<br>
 
+### Ubuntu
+Name: ubuntu-client  
+Test ubnutu client code in a deterministic environment.
+<br>
+
+### OSX
+Name: osx-client  
+Test OSX client code in a deterministic environment.
+<br>
+
+### IOS
+Name: ios-client  
+Test IOS client code in a deterministic environment.
+<br>
+
+### Andoid
+Name: android-client  
+Test android client code in a deterministic environment.
 <br>
 
 ## Services
@@ -43,24 +70,33 @@ Multiple identical clients can be built to simulate real world networks and load
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
 
 ### VNC
+Name: vnc  
 Ports: 6080:80
-### VPN
-### Twingates
-### Prometheus
-Ports: 9090:9090  
-
-### Andoid
-
+Virtual Network Computing, a technology that allows remote access and control of a computer or server over a network. Capable of forwarding any container using an x11 interface.
+### VPN  
+Name: VPN
+Provides a virtual private network that can be accessed, internally site-to-site or remotely
 <br>
 
-## Warnings
-Dont use the command   
+### Twingate  
+Name: twingate
+Provides a zero trust network access solution. It provides a simple and secure way to connect users to internal applications and resources, while also allowing IT teams to maintain control and visibility over access policies and permissions. It works by authenticating users and devices, and then granting access to specific resources based on their access policies.
+<br>
+
+### Prometheus
+Name: prometheus
+Ports: 9090:9090  
+An open-source monitoring system and time series database that is designed to collect and store metrics from various sources, including containers, operating systems, and applications. It provides powerful querying and alerting capabilities.
+<br>
+
+<!-- ## Warnings
+Dont use the command:   
 
     docker compose up  
 
-without specifying which clients, servers or services you would like
-<br>  
-<br>  
+without specifying which clients, servers or services you would like. Not doing so will result  -->
+<!-- <br>  
+<br>   -->
 
 # Environment Variables  
 
@@ -111,50 +147,6 @@ These environment variables pass though to the running containers.
  Execution modes are examples of pass-through environment variables intended to augment the execution of the code being tested. They do not impact the build of the container. There function should be defined in the tested code.
 
 <br>
-<br>  
-
-# Server, Client and Service Names
-
-These can be found in the docker-compose as service definitions. This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
-The containers are named as follows:
-
-## Servers  
-    alpine-server 
-    # The below have not been implemented 
-    windows-server
-    debian-server
-    fedora-server
-    centos-server
-    nginx-server  
-
-<br>   
-
-## Clients  
-    windows-client   
-    android-client   
-    osx-client   
-    ios-client   
-    ubuntu-client
-    # The below have not been implemented 
-    kali-client
-    debian-client
-
-
-<br>   
-
-## Services
-Built in network services that can be enabled to perform task such as filter traffic or log packets.  
-
-    instantlinux/samba-dc   # Domain Controller
-    twingate                # Split tunnel
-    vpn                     # Traditional VPN
-    dns-sinkhole            # DNS filtering  - ad-blocking
-    packet-capture          # Packet traffic log collection
-    log-collector           # Operating system log collection
-
-  
-
-<br>   
 <br>  
   
 # Build Command Syntax  
