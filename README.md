@@ -17,11 +17,21 @@
 
 A docker-compose for bootstrapping virtual networks, such as test platforms for code, virtualized file servers, virtualized computer science labs.
 
+Problem:
+
+Context:
+
+Solution:
+
+Benefits & Advantages:
+
+Implementation:
+
+
 When a container is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
 <br>
 
 ## Overview
-Each dockerfile contains commands to bootstrap an its associated image, install a git package, currently it is installed to /app. 
 
 These can be found in the docker-compose as service definitions. This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
 
@@ -30,6 +40,8 @@ These can be found in the docker-compose as service definitions. This compose pr
 ## Servers
 
 Servers are containers configured to serve content to clients and the host system. A website server such as flask or database like postgres would be an example.
+
+Each dockerfile contains commands to bootstrap its associated image and install a specified package from a CDN or from version control such as git, currently it is installed to /app. 
 
 ### Alpine
 Name: alpine-server  
@@ -61,6 +73,8 @@ Launch a ubuntu server or test ubuntu server code in a deterministic environment
 Clients are containers configured to receive content, send requests to servers and use service containers. Each OS has a respective client container, these include windows, linux, mac, IOS and android operating systems.
 Multiple identical clients can be built to simulate real world networks and loads.
 
+
+Each dockerfile contains commands to bootstrap its associated image and install a specified package from a CDN or from version control such as git, currently it is installed to /app. However some clients are pre configured for use as virtual machines using VNC.
 
 ### Windows
 Name: windows-client  

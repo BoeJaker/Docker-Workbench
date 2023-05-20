@@ -38,7 +38,7 @@ services:
   #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
   audit:
     image: linuxkit/auditd
-  logging:
+    logging:
       driver: json-file
   
   fluentd:
@@ -53,8 +53,8 @@ services:
     volumes:
       - ./services/fluentd/fluent.conf:/fluentd/etc/fluent.conf
     depends_on:
-      - kibana
-      - elasticsearch
+      # - kibana
+      # - elasticsearch
       - postgres-log
     links:
       - "elasticsearch"
@@ -198,28 +198,36 @@ services:
   
   # Services - Compute
   # ============================
-  llm:
+  huggingface:
     build:
       context: ./
       dockerfile: ./services/llm/huggingface/.Dockerfile
-      args:
-        ALPINE_IMAGE: ${LLM_IMAGE}
-        ALPINE_DIGEST : ${LLM_DIGEST}
-        SERVER_REPO : ${LLM_REPO}
-        GITHUB_TOKEN : ${GITHUB_TOKEN}
-        GITHUB_USERNAME : ${GITHUB_USERNAME}
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
     ports:
       - "8888:7860"
     volumes:
-      - ./services/llm/app:/app
+      - ./services/llm/huggingface/app:/app
     tty: true
-    environment:
-      - SERVER_MODE=${SERVER_MODE}
     logging:
       driver: ${LOG_SERVICE} 
+
+  freedomGPT:
+    build:
+      context: ./
+      dockerfile: ./services/llm/freedomGPT/.Dockerfile
+      args:
+        GITHUB_TOKEN : ${GITHUB_TOKEN}
+        GITHUB_USERNAME : ${GITHUB_USERNAME}
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    ports:
+      - "8889:7869"
+    volumes:
+      - ./services/llm/freedomGPT/app:/app
+    tty: true
 
   # Servers
   # ==============================
@@ -400,6 +408,24 @@ services:
     tty: true
     logging:
       driver: ${LOG_SERVICE} 
+  
+  kali:
+    build:
+      context: ./
+      dockerfile: /client/kali/.Dockerfile
+    ports: 
+      - 6080:4242
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE} 
+    volumes:
+      - ./client/kali/app:/app 
+    environment:
+      - USER:${KALI_USER}
+      - PASSWORD:${KALI_PASSWORD}
+    tty: true
+    logging:
+      driver: ${LOG_SERVICE} 
 
 # Volumes
 # ==============================
@@ -408,7 +434,6 @@ services:
 secrets:
   samba-admin-password:
     file: ./secrets/samba-admin-password
-
 
 
 # Example composition

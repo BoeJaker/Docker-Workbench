@@ -1,0 +1,1 @@
+FROM freedomgpt/freedomgpt
