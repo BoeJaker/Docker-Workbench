@@ -28,7 +28,7 @@ def get_container_port(service_config):
 
 def fuzzy_search(container_names, service_name):
     pattern = fr"{stack_name}-{service_name}-[0-9]*"  # Regex pattern
-    regex = re.compile(pattern)
+    regex = re.compile(re.escape(pattern))
 
     for container_name in container_names:
         if regex.match(container_name):
@@ -108,10 +108,7 @@ def index():
 @app.route('/start/<service>')
 def start_container(service):
     services = get_services()
-
-    if service in services:
-        os.popen(f"docker-compose up {service}")
-    # time.sleep(60)
+    os.popen(f"docker-compose up {[s for s in services if service in s]}")
     return redirect('/')
 
 @app.route('/stop/<service>')
