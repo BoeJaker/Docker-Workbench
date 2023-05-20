@@ -414,7 +414,7 @@ services:
       context: ./
       dockerfile: /client/kali/.Dockerfile
     ports: 
-      - 6080:4242
+      - 4242:5900
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE} 
