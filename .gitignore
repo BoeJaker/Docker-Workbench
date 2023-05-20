@@ -2,7 +2,7 @@
 .vscode
 ./hooks
 ./secrets
-*.secrets
+.secrets
 fluentd.conf
-.*/postgres/data/.*
-.*/app/.*
+**/postgres/data/
+**/app/
