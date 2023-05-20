@@ -1,0 +1,36 @@
+# Custom
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD /usr/bin/healthcheck.sh
+
+#TCP port
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD nc -z localhost <port>
+
+# Curl
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD curl -f <url>
+
+# Service
+# Health check a service dependency: If your container depends on another service like a cache or a search engine, you can perform a health check by checking the status of the service.
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD nc -z <service_host> <service_port> || exit 1
+
+# HTTP
+# Health check a web server: If your container runs a web server, you can perform a health check by sending an HTTP request to the server and checking the response status code. 
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD curl -f http://localhost:<port>/healthcheck || exit 1
+
+# File
+# Health check a file system: If your container writes to a file system, you can perform a health check by checking if the required files exist. 
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD test -f /path/to/required/file || exit 1
+
+# Queue
+# Health check a messaging queue: If your container uses a messaging queue like RabbitMQ or Kafka, you can perform a health check by checking the status of the queue. 
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD rabbitmqctl status || exit 1
+
+# Database
+#Health check a database connection: If your container depends on a database connection, you can perform a health check by attempting to connect to the database and running a simple query. For example, if you're using MySQL, you could run the 
+HEALTHCHECK --interval=<interval> --timeout=<timeout> --retries=<retries> \
+    CMD mysqladmin ping -h <host> -u <user> -p<password> || exit 1

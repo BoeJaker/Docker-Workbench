@@ -1,4 +1,20 @@
-# Docker GitHub Workbench
+# Docker GitHub Workbench 
+<!-- [![Sparkline](https://stars.medv.io/BoeJaker/Workbench.svg)](https://stars.medv.io/Boejaker/Workbench) -->
+
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Boejaker/Workbench/graphs/commit-activity)
+![Maintainer](https://img.shields.io/badge/maintainer-theMaintainer-blue)
+[![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://GitHub.com/Boejaker/ama)
+[![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/boejaker)
+[![GitHub license](https://img.shields.io/github/license/Boejaker/Workbench.svg)](https://github.com/Boejaker/Workbench/blob/master/LICENSE)  
+
+[![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://https://docker.com/)
+[![GitHub branches](https://badgen.net/github/branches/Boejaker/Workbench)](https://github.com/Boejaker/Workbench/)
+[![GitHub release](https://img.shields.io/github/release/Boejaker/Workbench.svg)](https://github.com/Boejaker/Workbench/releases/) 
+[![Latest release](https://badgen.net/github/release/Boejaker/Workbench)](https://github.com/Boejaker/Workbench/releases)
+[![GitHub latest commit](https://badgen.net/github/last-commit/Boejaker/Workbench)](https://github.com/Boejaker/Workbench/commit/)
+[![GitHub issues](https://img.shields.io/github/issues/Boejaker/Workbench.svg)](https://github.com/Boejaker/Workbench/issues/)  
+
+
 A docker-compose for bootstrapping virtual networks, such as test platforms for code, virtualized file servers, virtualized computer science labs.
 
 When a container is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
@@ -17,12 +33,16 @@ Servers are containers configured to serve content to clients and the host syste
 
 ### Alpine
 Name: alpine-server  
+Environment:  
+Description:  
 A 'vanilla' Alpine server, lightweight and fast. Test linux sever code in a deterministic environment.
 ### FTP
 Name: ftp  
 Ports:    
     21:21   
     21000-21010:21000-21010   
+Environment:  
+Description:  
 An ftp server using Alpine. Launch FTP servers or. Test linux sever code in a deterministic environment. 
 ### Postgres
 Name: postgres  
@@ -30,6 +50,8 @@ Name: postgres
 ### Ubuntu
 Name: ubuntu-server  
 Ports: 80:80  
+Environment:  
+Description:  
 Launch a ubuntu server or test ubuntu server code in a deterministic environment.
 
 <br>
@@ -42,26 +64,36 @@ Multiple identical clients can be built to simulate real world networks and load
 
 ### Windows
 Name: windows-client  
+Environment:  
+Description:  
 Test windows client code in a deterministic environment.
 <br>
 
 ### Ubuntu
 Name: ubuntu-client  
+Environment:  
+Description:  
 Test ubnutu client code in a deterministic environment.
 <br>
 
 ### OSX
 Name: osx-client  
+Environment:  
+Description:  
 Test OSX client code in a deterministic environment.
 <br>
 
 ### IOS
 Name: ios-client  
+Environment:  
+Description:  
 Test IOS client code in a deterministic environment.
 <br>
 
 ### Andoid
 Name: android-client  
+Environment:  
+Description:  
 Test android client code in a deterministic environment.
 <br>
 
@@ -70,24 +102,45 @@ Test android client code in a deterministic environment.
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
 
 ### VNC
-Name: vnc  
-Ports: 6080:80
+Name: vnc   
+Ports: 6080:80  
+Environment:  
+Description:  
 Virtual Network Computing, a technology that allows remote access and control of a computer or server over a network. Capable of forwarding any container using an x11 interface.
 ### VPN  
-Name: VPN
+Name: VPN  
+Environment:  
+Description:  
 Provides a virtual private network that can be accessed, internally site-to-site or remotely
 <br>
 
 ### Twingate  
-Name: twingate
+Name: twingate  
+Environment:  
+These environment variables must be set to use twingate      
+    TENANT_URL="https://your_network.twingate.com"   
+    ACCESS_TOKEN="sixXa1L...5MaMdgJte8a281xg"  
+    REFRESH_TOKEN="824_Q....NBQO"  
+    TWINGATE_LABEL_HOSTNAME="\`hostname\`" 
+
+Description:
 Provides a zero trust network access solution. It provides a simple and secure way to connect users to internal applications and resources, while also allowing IT teams to maintain control and visibility over access policies and permissions. It works by authenticating users and devices, and then granting access to specific resources based on their access policies.
 <br>
 
 ### Prometheus
 Name: prometheus
 Ports: 9090:9090  
+Environment: 
+Description:
 An open-source monitoring system and time series database that is designed to collect and store metrics from various sources, including containers, operating systems, and applications. It provides powerful querying and alerting capabilities.
 <br>
+
+### Large Language Model Interface
+Name: llm
+Ports: 8888:7860
+Environment: 
+Description:
+A python framework for loading large language models into a gradio interface.
 
 <!-- ## Warnings
 Dont use the command:   
@@ -128,15 +181,6 @@ These environment variables must be set to use git
     CLIENT_REPO=github.com/Your_User/Your_Git.git  
     SERVER_REPO=github.com/Your_User/Your_Git.git    
 <br>
-
-### <u>Twingate</u>
-These environment variables must be set to use twingate
-
-    TENANT_URL="https://your_network.twingate.com"   
-    ACCESS_TOKEN="sixXa1L...5MaMdgJte8a281xg"  
-    REFRESH_TOKEN="824_Q....NBQO"  
-    TWINGATE_LABEL_HOSTNAME="\`hostname\`"  
-<br>  
 
 ### <u>Pass-through Environment Variables</u>
 These environment variables pass though to the running containers.

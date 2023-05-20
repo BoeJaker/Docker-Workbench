@@ -2,8 +2,122 @@ version: "3"
  
 services:
 
-  # Services
+  # Services - Logging
   # ============================
+  postgres-log:
+    image: postgres:latest
+    volumes:
+      - ./services/postgres/data:/var/lib/postgresql/data  
+      - ./services/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_USER=${POSTGRES_LOG_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_LOG_PASSWORD}
+    ports:
+      - 5432:5432
+    logging:
+      driver: json-file 
+    deploy:  
+      resources:
+        limits:
+          cpus: '0.2'    # Limits the container to use up to 0.2 CPU cores
+          memory: '256M'  # Limits the container to use up to 256 MB of memory
+        reservations:
+          cpus: '0.1'    # Reserves at least 0.1 CPU cores for the container
+          memory: '128M'  # Reserves at least 128 MB of memory for the container
+
+  # logspout:
+  #   image: gliderlabs/logspout:latest
+  #   ports:
+  #     - 514:514/udp
+  #   depends_on:
+  #     - postgres-log
+  #   links:
+  #     - "postgres-log"
+  #   volumes:
+  #    - //var/run/docker.sock:/var/run/docker.sock
+  #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
+  audit:
+    image: linuxkit/auditd
+  logging:
+      driver: json-file
+  
+  fluentd:
+    build: 
+      context: ./
+      dockerfile: ./services/fluentd/.Dockerfile
+    environment:
+      - LOG_DATABASE_NAME=${LOG_DATABASE_NAME}
+      - LOG_DATABASE_USER=${LOG_DATABASE_USER}
+      - LOG_DATABASE_PASSWORD=${LOG_DATABASE_PASSWORD}
+      - LOG_DATABASE_TABLE=${LOG_DATABASE_TABLE}
+    volumes:
+      - ./services/fluentd/fluent.conf:/fluentd/etc/fluent.conf
+    depends_on:
+      - kibana
+      - elasticsearch
+      - postgres-log
+    links:
+      - "elasticsearch"
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    logging:
+      driver: json-file
+    
+    deploy:  
+      resources:
+        limits:
+          cpus: '0.2'    # Limits the container to use up to 0.5 CPU cores
+          memory: '256M'  # Limits the container to use up to 256 MB of memory
+        reservations:
+          cpus: '0.1'    # Reserves at least 0.2 CPU cores for the container
+          memory: '128M'  # Reserves at least 128 MB of memory for the container
+
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
+    container_name: elasticsearch
+    environment:
+      - "discovery.type=single-node"
+    expose:
+      - "9200"
+    ports:
+      - "9200:9200"
+    logging:
+      driver: json-file 
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.13.1
+    links:
+      - "elasticsearch"
+    environment:
+      - "XPACK_GRAPH_ENABLED=false"
+      - "XPACK_ML_ENABLED=false"
+      - "XPACK_REPORTING_ENABLED=false"
+      - "XPACK_SECURITY_ENABLED=false"
+      - "XPACK_WATCHER_ENABLED=false"
+    ports:
+      - "5601:5601"
+    logging:
+      driver: json-file 
+
+  # Services - Metrics
+  # ============================
+  prometheus:
+    image: prom/prometheus
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}  
+    ports:
+      - "9090:9090"
+    volumes: 
+      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    logging:
+      driver: ${LOG_SERVICE} 
+  
+  # Services - Networking
+  # ============================
+
   twingate:
     image: twingate/connector:1
     environment:
@@ -11,40 +125,101 @@ services:
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - REFRESH_TOKEN=${REFRESH_TOKEN}
       - TWINGATE_LABEL_HOSTNAME=${TWINGATE_LABEL_HOSTNAME}
+    depends_on:
+      - ${LOG_SERVICE}
+    logging:
+      driver: ${LOG_SERVICE} 
+
+  ingress-controller:
+    image: bitnami/nginx-ingress-controller
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   domain-controller:
-    image: docker pull instantlinux/samba-dc
-  
+    image: instantlinux/samba-dc
+    environment:
+      - NETBIOS_NAME="boejaker"
+      - REALM="workspace.com"
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    network_mode: host  
+    cap_add:
+      - CAP_SYS_ADMIN
+    secrets:
+      - samba-admin-password
+    logging:
+      driver: ${LOG_SERVICE} 
+    
   dns-sinkhole:
-    image: docker pull patterns/sinkhole
+    image: patterns/sinkhole
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
-  proxy:
+  mitm:
     image: mitmproxy/mitmproxy
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   antivirus:
-    image: rordi/docker-antivirus
-
-  prometheus:
-    image: prom/prometheus
-
-    depends_on:
-      - ${SERVICE}  
+    image: clamav/clamav
     ports:
-      - "9090:9090"
-    volumes: 
-      - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - 3310:3310
+    volumes:
+      - /path/to/clamav/config:/etc/clamav
+    environment:
+      - CLAMAV_CONFIG_PATH=/etc/clamav
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   vnc:
     image: dorowu/ubuntu-desktop-lxde-vnc
-
     depends_on: 
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     ports:
     - "6080:80"
-    
     volumes:
       - /dev/shm:/dev/shm
+    logging:
+      driver: ${LOG_SERVICE} 
+  
+  # Services - Compute
+  # ============================
+  llm:
+    build:
+      context: ./
+      dockerfile: ./services/llm/huggingface/.Dockerfile
+      args:
+        ALPINE_IMAGE: ${LLM_IMAGE}
+        ALPINE_DIGEST : ${LLM_DIGEST}
+        SERVER_REPO : ${LLM_REPO}
+        GITHUB_TOKEN : ${GITHUB_TOKEN}
+        GITHUB_USERNAME : ${GITHUB_USERNAME}
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    ports:
+      - "8888:7860"
+    volumes:
+      - ./services/llm/app:/app
+    tty: true
+    environment:
+      - SERVER_MODE=${SERVER_MODE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   # Servers
   # ==============================
@@ -57,40 +232,43 @@ services:
       - "${FTP_ROOT}:/Games"
     environment:
       - USERS=${FTP_USERS}
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
     healthcheck:
       test: curl --fail ftp://localhost:21 || exit 1
       interval: 60s
       retries: 5
       start_period: 20s
       timeout: 10s
+    logging:
+      driver: ${LOG_SERVICE} 
 
   alpine-server:
     build:
       context: ./
-      dockerfile: ./server/Alpine/.Dockerfile
+      dockerfile: ./server/alpine/.Dockerfile
       args:
         ALPINE_IMAGE: ${ALPINE_IMAGE}
         ALPINE_DIGEST : ${ALPINE_DIGEST}
         SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./server/alpine/app:/app
-
     tty: true
-    
     environment:
       - SERVER_MODE=${SERVER_MODE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
 
-  ubnuntu-server:
+  ubuntu-server:
     build:
       context: ./
       dockerfile: ./server/ubnutu/.Dockerfile
@@ -100,20 +278,18 @@ services:
         SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./server/Alpine/app:/app
-
     tty: true
-    
     environment:
       - SERVER_MODE=${SERVER_MODE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   # Clients
   # ==============================
@@ -127,15 +303,15 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     volumes:
       - ./client/windows/app:/app
-
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
 
   android-client:
@@ -148,16 +324,15 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     volumes:
       - ./clientandroid/app:/app
-
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-
+    logging:
+      driver: ${LOG_SERVICE} 
 
   ios-client:
     build:
@@ -169,16 +344,15 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     volumes:
       - ./client/ios/app:/app
-
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-
+    logging:
+      driver: ${LOG_SERVICE} 
 
   osx-client:
     build:
@@ -190,15 +364,15 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     volumes:
       - ./client/osx/app:/app
-
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
+    logging:
+      driver: ${LOG_SERVICE} 
 
   ubuntu-client:
     build:
@@ -210,30 +384,32 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-     
     ports:
-      - "80:80"
-    
+      - "80:8000"
     depends_on:
+      - ${LOG_SERVICE}
       - ${SERVICE}
-
     volumes:
       - ./client/ubuntu/app:/app
-    
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
       - CLIENT_REPO=${CLIENT_REPO}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
       - GITHUB_USERNAME=${GITHUB_USERNAME}
-    
     # command: /bin/bash
     tty: true
+    logging:
+      driver: ${LOG_SERVICE} 
 
 # Volumes
 # ==============================
-volumes:
-  server:
-  client:
+# volumes:
+#   pgdata:
+secrets:
+  samba-admin-password:
+    file: ./secrets/samba-admin-password
+
+
 
 # Example composition
 #======================
