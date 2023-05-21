@@ -128,15 +128,14 @@ services:
     depends_on:
       - ${LOG_SERVICE}
     logging:
-      driver: ${LOG_SERVICE} 
+      driver: json-file 
 
   ingress-controller:
     image: bitnami/nginx-ingress-controller
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-    logging:
-      driver: ${LOG_SERVICE} 
+
 
   domain-controller:
     image: instantlinux/samba-dc
@@ -151,16 +150,12 @@ services:
       - CAP_SYS_ADMIN
     secrets:
       - samba-admin-password
-    logging:
-      driver: ${LOG_SERVICE} 
     
   dns-sinkhole:
     image: patterns/sinkhole
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   mitm:
     image: mitmproxy/mitmproxy
@@ -213,7 +208,7 @@ services:
     logging:
       driver: ${LOG_SERVICE} 
 
-  freedomGPT:
+  freedomgpt:
     build:
       context: ./
       dockerfile: ./services/llm/freedomGPT/.Dockerfile
@@ -412,11 +407,12 @@ services:
   kali:
     build:
       context: ./
-      dockerfile: /client/kali/.Dockerfile
+      dockerfile: ./client/kali/.Dockerfile
     ports: 
       - 5901:5901
-      - 6080:6080
-
+      - 6081:6080
+    cap_add:
+      - "NET_RAW"
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE} 
@@ -426,8 +422,7 @@ services:
       - USER:${KALI_USER}
       - PASSWORD:${KALI_PASSWORD}
     tty: true
-    logging:
-      driver: ${LOG_SERVICE} 
+
 
 # Volumes
 # ==============================
