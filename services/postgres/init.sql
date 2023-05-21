@@ -1,6 +1,5 @@
-CREATE DATABASE msfdb_prod;
-CREATE DATABASE msfdb_dev;
-CREATE DATABASE msfdb_test;
+CREATE DATABASE msf;
+CREATE DATABASE msf_test;
 CREATE DATABASE logs;
 
 -- Switch to the newly created database or the existing one
