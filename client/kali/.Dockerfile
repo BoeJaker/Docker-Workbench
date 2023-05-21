@@ -15,12 +15,13 @@ RUN apt-get install xvfb
 RUN mkdir ~/.vnc
 RUN x11vnc -storepasswd secret ~/.vnc/passwd
 
-# Expose VNC and noVNC ports
+# Expose VNC port
 EXPOSE 5901
-EXPOSE 6080
 
 # Set up display environment variable
 ENV DISPLAY=:1
+
+COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
 
 # Start Xvfb and VNC server
 CMD (Xvfb :1 -screen 0 1920x1080x16 &) && (sleep 5 && x11vnc -display :1 -forever -usepw -shared -rfbport 5901 -bg) && xfce4-session
