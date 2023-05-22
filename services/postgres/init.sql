@@ -21,3 +21,4 @@ CREATE TABLE IF NOT EXISTS fluentd (
   time TIMESTAMPTZ,
   log TEXT
 );
+

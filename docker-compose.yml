@@ -185,7 +185,7 @@ services:
       - ${LOG_SERVICE}
       - ${SERVICE}
     ports:
-    - "6080:80"
+      - "6080:80"
     volumes:
       - /dev/shm:/dev/shm
     logging:
@@ -410,7 +410,7 @@ services:
       dockerfile: ./client/kali/.Dockerfile
     ports: 
       - 5901:5901
-      - 6081:6080
+      
     cap_add:
       - "NET_RAW" 
     depends_on:

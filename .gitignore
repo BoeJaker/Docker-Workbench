@@ -4,6 +4,6 @@
 ./secrets
 .secrets
 fluentd.conf
-**/postgres/data/**
+**/postgres/data/
 **/app/
-/media
+/media/
