@@ -10,7 +10,7 @@ RUN apt-get install x11vnc -y
 RUN apt-get install xfce4-terminal -y
 RUN apt-get install firefox-esr -y
 RUN apt-get install xvfb
-RUN apt-get install history
+RUN apt-get install history nano htop
 RUN apt-get install metasploit-framework
 
 # Set up VNC server
