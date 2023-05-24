@@ -27,6 +27,10 @@ EXPOSE 5901
 # Set up display environment variable
 ENV DISPLAY=:1
 
+# # X11 forwarding
+# ENV DISPLAY=host.docker.internal:0
+# EXPOSE 6000
+
 # Copy Kali database configuration
 COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
 
