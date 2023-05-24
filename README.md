@@ -1,8 +1,7 @@
-# Docker GitHub Workbench 
+# Docker-GitHub Workbench 
 <!-- [![Sparkline](https://stars.medv.io/BoeJaker/Workbench.svg)](https://stars.medv.io/Boejaker/Workbench) -->
 
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Boejaker/Workbench/graphs/commit-activity)
-![Maintainer](https://img.shields.io/badge/maintainer-theMaintainer-blue)
 [![Ask Me Anything !](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://GitHub.com/Boejaker/ama)
 [![saythanks](https://img.shields.io/badge/say-thanks-ff69b4.svg)](https://saythanks.io/to/boejaker)
 [![GitHub license](https://img.shields.io/github/license/Boejaker/Workbench.svg)](https://github.com/Boejaker/Workbench/blob/master/LICENSE)  
@@ -14,26 +13,32 @@
 [![GitHub latest commit](https://badgen.net/github/last-commit/Boejaker/Workbench)](https://github.com/Boejaker/Workbench/commit/)
 [![GitHub issues](https://img.shields.io/github/issues/Boejaker/Workbench.svg)](https://github.com/Boejaker/Workbench/issues/)  
 
-
+# What is Docker-Github Workbench?
 A docker-compose for bootstrapping virtual networks, such as test platforms for code, virtualized file servers, virtualized computer science labs.
 
-Problem:
+### Problem:  
+Working with git across multiple machines and locations poses a challenge in maintaining a consistent and reliable production environment for my projects and tools. It becomes increasingly difficult to ensure that the development environment on each machine matches the desired configuration. Additionally, I require access to the powerful computing resources available on my desktop machine.
 
-Context:
+### Goal:  
+To address these challenges, I am seeking a solution that allows me to create a private network environment capable of providing seamless access to the computing capabilities of my desktop machine. By establishing this network, I aim to achieve a consistent and flexible development environment that can be accessed from any location. Docker emerges as a promising technology that can enable the creation of isolated, containerized environments, ensuring consistent configurations across multiple machines.
 
-Solution:
+The primary goal of this project is to leverage Docker and related technologies to establish a robust and portable development environment. This environment will enable me to seamlessly transition between different machines and locations while maintaining consistency in the setup, dependencies, and configurations of my projects and tools. By utilizing Docker, I anticipate achieving a flexible and scalable solution that optimizes productivity and resource utilization.
 
-Benefits & Advantages:
+### Solution:  
+By leveraging Twingate, I will establish a secure network connection that allows me to access my powerful desktop's computing resources from any location. This will address the challenge of maintaining a consistent production environment across multiple machines and locations.
 
-Implementation:
+To enhance the flexibility and consistency of my development environment, I will containerize operating systems. This approach will enable me to quickly deploy isolated environments for testing code, ensuring that each instance is self-contained and can be easily spun up, imaged, and shut down as needed.
 
+Furthermore, I plan to create a variety of containerized tools specifically designed to monitor and log the Docker stack. These tools will serve as valuable resources for postmortem analysis of failures, enabling me to diagnose issues more effectively and identify bugs more efficiently. The metrics collected from these monitoring tools will also play a crucial role in measuring the overall health and performance of the system.
 
-When a container is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
+### Conclusion:
+Overall, this solution aims to establish a secure and flexible development environment that leverages containerization, remote network connectivity, and robust monitoring capabilities. By implementing these strategies, I will be able to streamline my development workflow, enhance debugging processes, and ensure the optimal performance of my projects.
+
 <br>
 
-## Overview
+# Overview
 
-These can be found in the docker-compose as service definitions. This compose provides flexibility to use testing workflows for each of the following servers and clients, as well as a selection of services to run along-side.   
+The stack consists of servers, clients and services which can be further broken down into sub-categories, below is a description of each, their function and properties.
 
 <br>
 
@@ -41,13 +46,16 @@ These can be found in the docker-compose as service definitions. This compose pr
 
 Servers are containers configured to serve content to clients and the host system. A website server such as flask or database like postgres would be an example.
 
-Each dockerfile contains commands to bootstrap its associated image and install a specified package from a CDN or from version control such as git, currently it is installed to /app. 
+Each dockerfile contains commands to bootstrap its associated image and install a specified package from a CDN or from version control such as git, currently it is installed to /app.  
+<br>
 
 ### Alpine
 Name: alpine-server  
 Environment:  
 Description:  
-A 'vanilla' Alpine server, lightweight and fast. Test linux sever code in a deterministic environment.
+A 'vanilla' Alpine server, lightweight and fast. Test linux sever code in a deterministic environment.  
+<br>
+
 ### FTP
 Name: ftp  
 Ports:    
@@ -55,9 +63,14 @@ Ports:
     21000-21010:21000-21010   
 Environment:  
 Description:  
-An ftp server using Alpine. Launch FTP servers or. Test linux sever code in a deterministic environment. 
+An ftp server using Alpine. Launch basic FTP servers and test ftp services in a deterministic environment.   
+<br>
+
 ### Postgres
 Name: postgres  
+Ports:
+    5432
+<br>
 
 ### Ubuntu
 Name: ubuntu-server  
@@ -65,16 +78,19 @@ Ports: 80:80
 Environment:  
 Description:  
 Launch a ubuntu server or test ubuntu server code in a deterministic environment.
-
 <br>
 
 ## Clients
 
 Clients are containers configured to receive content, send requests to servers and use service containers. Each OS has a respective client container, these include windows, linux, mac, IOS and android operating systems.
-Multiple identical clients can be built to simulate real world networks and loads.
+Multiple identical clients can be built to simulate real world networks and loads.  
+Note:  
+When a client is built it creates a shared app folder and downloads the latest version of the git repo specified in .env to the app folder.  
 
 
 Each dockerfile contains commands to bootstrap its associated image and install a specified package from a CDN or from version control such as git, currently it is installed to /app. However some clients are pre configured for use as virtual machines using VNC.
+
+Clients are headless but you can run gui's by forwarding to the hosts X11 server (xming on windows)
 
 ### Windows
 Name: windows-client  
@@ -111,12 +127,24 @@ Description:
 Test android client code in a deterministic environment.
 <br>
 
+## VNC Clients
+### Ubuntu
+Name: vnc (ubuntu-vnc)  
+Environment:  
+Description: 
+
+### Kali
+Name: kali (kali-vnc)  
+Environment:  
+Description: 
+
+
 ## Services
 
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
 
-### VNC
-Name: vnc   
+### NoVNC
+Name: novnc   
 Ports: 6080:80  
 Environment:  
 Description:  

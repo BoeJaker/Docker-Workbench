@@ -2,8 +2,21 @@ version: "3"
  
 services:
 
+  # Administration
+  # ============================
+
+  adminer:
+    image: adminer
+    ports: 
+      - 8080:8080
+    links:
+      - postgres-log:db 
+    restart: always
+
+
   # Services - Logging
   # ============================
+
   postgres-log:
     image: postgres:latest
     volumes:
@@ -14,8 +27,11 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_LOG_PASSWORD}
     ports:
       - 5432:5432
+    depends_on:
+      - adminer
     logging:
       driver: json-file 
+    restart: always
     deploy:  
       resources:
         limits:
@@ -36,6 +52,7 @@ services:
   #   volumes:
   #    - //var/run/docker.sock:/var/run/docker.sock
   #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
+  
   audit:
     image: linuxkit/auditd
     logging:
@@ -63,7 +80,7 @@ services:
       - "24224:24224/udp"
     logging:
       driver: json-file
-    
+    restart: always
     deploy:  
       resources:
         limits:
@@ -73,6 +90,9 @@ services:
           cpus: '0.1'    # Reserves at least 0.2 CPU cores for the container
           memory: '128M'  # Reserves at least 128 MB of memory for the container
 
+
+  # Services - Metrics
+  # ============================
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
@@ -85,6 +105,7 @@ services:
       - "9200:9200"
     logging:
       driver: json-file 
+    restart: always
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.13.1
@@ -100,9 +121,8 @@ services:
       - "5601:5601"
     logging:
       driver: json-file 
+    restart: always
 
-  # Services - Metrics
-  # ============================
   prometheus:
     image: prom/prometheus
     depends_on:
@@ -114,7 +134,9 @@ services:
       - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     logging:
       driver: ${LOG_SERVICE} 
+    restart: always
   
+
   # Services - Networking
   # ============================
 
@@ -129,13 +151,14 @@ services:
       - ${LOG_SERVICE}
     logging:
       driver: json-file 
+    restart: always
 
   ingress-controller:
     image: bitnami/nginx-ingress-controller
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-
+    restart: always
 
   domain-controller:
     image: instantlinux/samba-dc
@@ -178,21 +201,12 @@ services:
       - ${SERVICE}
     logging:
       driver: ${LOG_SERVICE} 
+    restart: always
 
-  vnc:
-    image: dorowu/ubuntu-desktop-lxde-vnc
-    depends_on: 
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    ports:
-      - "6080:80"
-    volumes:
-      - /dev/shm:/dev/shm
-    logging:
-      driver: ${LOG_SERVICE} 
   
-  # Services - Compute
+  # Services - LLM
   # ============================
+
   huggingface:
     build:
       context: ./
@@ -224,8 +238,10 @@ services:
       - ./services/llm/freedomGPT/app:/app
     tty: true
 
+
   # Servers
   # ==============================
+
   ftp:
     image: delfer/alpine-ftp-server
     ports:
@@ -270,7 +286,6 @@ services:
     logging:
       driver: ${LOG_SERVICE} 
 
-
   ubuntu-server:
     build:
       context: ./
@@ -294,7 +309,7 @@ services:
     logging:
       driver: ${LOG_SERVICE} 
 
-  # Clients
+  # Clients - Headless
   # ==============================
   windows-client:
     build:
@@ -403,6 +418,23 @@ services:
     tty: true
     logging:
       driver: ${LOG_SERVICE} 
+
+
+  # Clients - VNC
+  # ===================================
+
+  vnc:
+    image: dorowu/ubuntu-desktop-lxde-vnc
+    depends_on: 
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    ports:
+      - "6080:80"
+    volumes:
+      - /dev/shm:/dev/shm
+    logging:
+      driver: ${LOG_SERVICE} 
+    restart: always
   
   kali:
     build:
@@ -410,7 +442,7 @@ services:
       dockerfile: ./client/kali/.Dockerfile
     ports: 
       - 5901:5901
-      
+
     cap_add:
       - "NET_RAW"
     depends_on:
@@ -422,6 +454,7 @@ services:
       - USER:${KALI_USER}
       - PASSWORD:${KALI_PASSWORD}
     tty: true
+    restart: always
 
 
 # Volumes
