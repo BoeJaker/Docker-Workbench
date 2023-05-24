@@ -17,11 +17,11 @@ RUN apt-get install nano
 
 # Setup postgres portforwarding
 RUN apt-get install socat -y
-RUN socat TCP-LISTEN:5432,fork TCP:workbench_postgres-log_1:5432
+RUN socat TCP-LISTEN:5432,fork TCP:workbench_postgres-log_1:5432 &
 
 # Set up VNC server
 RUN mkdir ~/.vnc
-RUN x11vnc -storepasswd ${KALI_VNC_PASSWORD} ~/.vnc/passwd
+RUN x11vnc -storepasswd secret ~/.vnc/passwd
 # Expose VNC port
 EXPOSE 5901
 # Set up display environment variable
@@ -39,9 +39,8 @@ RUN apt-get install metasploit-framework -y
 RUN apt-get install maltego -y
 
 RUN git clone https://github.com/shizzz477/msploitego.git
-RUN apt-get install pyenv
+RUN curl https://pyenv.run | bash
 RUN pyenv install 2.7.18
-RUN 
 
 RUN useradd -ms /bin/bash boejaker
 USER boejaker
