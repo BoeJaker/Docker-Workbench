@@ -3,6 +3,7 @@
 rm -R /root/.pyenv
 
 # msploitego dependencies 
+sudo apt install zlib1g zlib1g-dev libssl-dev libbz2-dev libsqlite3-dev libreadline-dev
 curl https://pyenv.run | bash 
 
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc  
