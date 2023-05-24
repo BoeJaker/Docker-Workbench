@@ -245,10 +245,10 @@ services:
   ftp:
     image: delfer/alpine-ftp-server
     ports:
-      - "21:21"
+      - "22:21"
       - "21000-21010:21000-21010"
     volumes:
-      - "${FTP_ROOT}:/Games"
+      - "${FTP_ROOT}:/ftp"
     environment:
       - USERS=${FTP_USERS}
     depends_on:
@@ -260,8 +260,6 @@ services:
       retries: 5
       start_period: 20s
       timeout: 10s
-    logging:
-      driver: ${LOG_SERVICE} 
 
   alpine-server:
     build:
@@ -444,7 +442,7 @@ services:
       - 5901:5901
 
     cap_add:
-      - "NET_RAW"
+      - "NET_RAW" 
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE} 

@@ -40,10 +40,12 @@ if mode == "bert":
     segments = [context[i:i+max_segment_length] for i in range(0, len(context), stride)]
 
     # Initialize an empty list to store answers
-    answers = []
+    answers = ["",]
     stop = 0
 
 def process_segment(question, segment):
+
+
     global stop
     # Tokenize inputs
     inputs = tokenizer.encode_plus(question, segment, add_special_tokens=True, return_tensors="pt")
@@ -57,13 +59,15 @@ def process_segment(question, segment):
     answer_start = torch.argmax(start_scores)
     answer_end = torch.argmax(end_scores) + 1
     answer = tokenizer.convert_tokens_to_string(tokenizer.convert_ids_to_tokens(inputs["input_ids"][0][answer_start:answer_end]))
-    certainty_score = start_scores[0][answer_start].item() + end_scores[0][answer_end-1].item()
-    print(certainty_score)
-    if certainty_score >= 10:
-        # Store the answer
-        answers.append(answer)
-        print(answer)
-        stop = 1
+    if answer:
+        certainty_score = start_scores[0][answer_start].item() + end_scores[0][answer_end-1].item()
+
+        print(certainty_score, answer)
+        if certainty_score >= 7 :
+            # Store the answer
+            answers[0]=answer
+            print(answer)
+            stop = 1
 
 def qa_bot(history):
     global stop
@@ -71,19 +75,21 @@ def qa_bot(history):
     threads=[]
     # Iterate over each segment and perform question-answering
     for segment in segments:
+        process_segment(question,segment)
         # Check if new threads should be generated
-        with lock:
-            if stop == 1:
-                break
+        # with lock:
+        if stop == 1:
+            stop = 0
+            break
 
-        t = threading.Thread(target=process_segment,args=(question,segment))
-        threads.append(t)
-        t.start()
+        # t = threading.Thread(target=process_segment,args=(question,segment))
+        # threads.append(t)
+        # t.start()
         
             
 
-    for t in threads:
-        t.join() 
+    # for t in threads:
+    #     t.join() 
 
     # Combine answers from all segments
     combined_answer = ' '.join(answers)
