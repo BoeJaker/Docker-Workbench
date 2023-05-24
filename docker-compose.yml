@@ -27,8 +27,6 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_LOG_PASSWORD}
     ports:
       - 5432:5432
-    depends_on:
-      - adminer
     logging:
       driver: json-file 
     restart: always
