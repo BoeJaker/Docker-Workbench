@@ -40,6 +40,10 @@ RUN apt-get install maltego -y
 
 RUN git clone https://github.com/shizzz477/msploitego.git
 RUN curl https://pyenv.run | bash
+RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+RUN echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+RUN echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+RUN exec $SHELL
 RUN pyenv install 2.7.18
 
 RUN useradd -ms /bin/bash boejaker
