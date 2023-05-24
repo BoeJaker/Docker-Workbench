@@ -22,6 +22,15 @@ RUN socat TCP-LISTEN:5432,fork TCP:workbench_postgres-log_1:5432 &
 # Set up VNC server
 RUN mkdir ~/.vnc
 RUN x11vnc -storepasswd secret ~/.vnc/passwd
+
+# Copy Kali database configuration
+COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
+
+# Maltego & Metasploit
+RUN apt-get install metasploit-framework -y
+RUN apt-get install maltego -y
+RUN git clone https://github.com/shizzz477/msploitego.git
+
 # Expose VNC port
 EXPOSE 5901
 # Set up display environment variable
@@ -31,24 +40,8 @@ ENV DISPLAY=:1
 # ENV DISPLAY=host.docker.internal:0
 # EXPOSE 6000
 
-# Copy Kali database configuration
-COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
 
-# Maltego & Metasploit
-RUN apt-get install metasploit-framework -y
-RUN apt-get install maltego -y
-
-RUN git clone https://github.com/shizzz477/msploitego.git
-RUN curl https://pyenv.run | bash
-RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
-RUN echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
-RUN echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n eval "$(pyenv init -)"\nfi' >> ~/.bashrc
-RUN exec $SHELL
-RUN pyenv install 2.7.18
-
-RUN useradd -ms /bin/bash boejaker
-USER boejaker
-COPY ./clients/kali/init.sh /init.sh
-RUN chmod +x /init.sh
+COPY ./client/kali/init.sh /root/init.sh
+RUN chmod +x /root/init.sh
 # Start Xvfb and VNC server
-CMD [ "/init.sh" ]
+CMD [ "/root/init.sh" ]
