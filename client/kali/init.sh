@@ -3,7 +3,7 @@
 rm -R /root/.pyenv
 
 # msploitego dependencies 
-sudo apt install zlib1g zlib1g-dev libssl-dev libbz2-dev libsqlite3-dev libreadline-dev
+apt install zlib1g zlib1g-dev libssl-dev libbz2-dev libsqlite3-dev libreadline-dev -y
 curl https://pyenv.run | bash 
 
 echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc  
@@ -16,8 +16,11 @@ eval "$(pyenv virtualenv-init -)"
 # exec $SHELL &
 pyenv install 2.7.18
 
-pip install deprecated python-libnmap NmapParser psycopg2  
-apt-get install libpq-dev  
+pip install deprecated python-libnmap==0.7.2 NmapParser psycopg2  
+apt-get install libpq-dev -y
+
+ln -s /msploitego/msploitego/src/mspoitego/transforms /root/transforms
+# root/.pyenv/versions/2.7.18/bin/python2.7
 
 echo "select an install size, light, default or large"
 read mode
