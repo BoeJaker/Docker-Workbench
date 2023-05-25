@@ -130,8 +130,6 @@ services:
       - "9090:9090"
     volumes: 
       - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-    logging:
-      driver: ${LOG_SERVICE} 
     restart: always
   
 
@@ -183,8 +181,6 @@ services:
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   antivirus:
     image: clamav/clamav
@@ -197,8 +193,6 @@ services:
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-    logging:
-      driver: ${LOG_SERVICE} 
     restart: always
 
   
@@ -217,8 +211,6 @@ services:
     volumes:
       - ./services/llm/huggingface/app:/app
     tty: true
-    logging:
-      driver: ${LOG_SERVICE} 
 
   freedomgpt:
     build:
@@ -236,6 +228,14 @@ services:
       - ./services/llm/freedomGPT/app:/app
     tty: true
 
+  #
+  # =============================
+
+  metaploitable:
+    image: tleemcjr/metasploitable2
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
 
   # Servers
   # ==============================
@@ -297,8 +297,6 @@ services:
     tty: true
     environment:
       - SERVER_MODE=${SERVER_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   ubuntu-server:
     build:
@@ -320,8 +318,6 @@ services:
     tty: true
     environment:
       - SERVER_MODE=${SERVER_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   # Clients - Headless
   # ==============================
@@ -342,8 +338,6 @@ services:
       - ./client/windows/app:/app
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
 
   android-client:
@@ -363,8 +357,6 @@ services:
       - ./clientandroid/app:/app
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   ios-client:
     build:
@@ -383,8 +375,6 @@ services:
       - ./client/ios/app:/app
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
 
   osx-client:
     build:
@@ -402,9 +392,7 @@ services:
     volumes:
       - ./client/osx/app:/app
     environment:
-      - CLIENT_MODE=${CLIENT_MODE}
-    logging:
-      driver: ${LOG_SERVICE} 
+      - CLIENT_MODE=${CLIENT_MODE} 
 
   ubuntu-client:
     build:
@@ -430,8 +418,6 @@ services:
       - GITHUB_USERNAME=${GITHUB_USERNAME}
     # command: /bin/bash
     tty: true
-    logging:
-      driver: ${LOG_SERVICE} 
 
 
   # Clients - VNC
@@ -446,8 +432,6 @@ services:
       - "6080:80"
     volumes:
       - /dev/shm:/dev/shm
-    logging:
-      driver: ${LOG_SERVICE} 
     restart: always
   
   kali:
