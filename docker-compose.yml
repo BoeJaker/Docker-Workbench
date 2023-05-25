@@ -254,10 +254,28 @@ services:
       - ${SERVICE}
     healthcheck:
       test: curl --fail ftp://localhost:21 || exit 1
-      interval: 60s
+      interval: 180s
       retries: 5
       start_period: 20s
       timeout: 10s
+    
+  rtmp:
+    image: alqutami/rtmp-hls
+    ports:
+      - 1935:1935 # RTMP socket
+      - 8080:8080 # Web player
+    volumes:
+      - "${RTMP_ROOT}:/ftp"
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    healthcheck:
+      test: ( curl --fail stmp://localhost:1935 && curl --fail http://localhost:8080 ) || exit 1
+      interval: 300s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+
 
   alpine-server:
     build:
