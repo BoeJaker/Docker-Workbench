@@ -42,6 +42,8 @@ ENV DISPLAY=:1
 
 
 COPY ./client/kali/init.sh /root/init.sh
+COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
 RUN chmod +x /root/init.sh
+RUN chmod +x /root/change_python_version.sh
 # Start Xvfb and VNC server
 CMD [ "/root/init.sh" ]

@@ -19,4 +19,4 @@ RUN apt-get update && \
 
 COPY /client/ubuntu/init.sh /
 RUN chmod +x /init.sh
-ENTRYPOINT [ "/init.sh","/bin/bash" ]
+ENTRYPOINT [ "/init.sh &&","/bin/bash" ]
