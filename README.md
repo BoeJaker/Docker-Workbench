@@ -142,7 +142,18 @@ Description:
 ## Services
 
 Services are containers that provide network services such as VPN, logging, penetration testing and stress testing. Twingate is an example of a service, it allows the admin to, from anywhere, connect to services, servers & clients within the docker network.
-
+### Fuentd
+Name: fluentd   
+Ports: 24224:24224  
+Environment:  
+Description:  
+Note: to enable fluentd please amend your docker installations daemon.json file to match that the sample provided in the [source](daemon.json)  
+### Logspout
+Name: logspout   
+Ports:  
+Environment:  
+Description:  
+Note: to enable logspout please amend your docker installations daemon.json file to match that the sample provided in the [source](daemon.json)  
 ### NoVNC
 Name: novnc   
 Ports: 6080:80  
