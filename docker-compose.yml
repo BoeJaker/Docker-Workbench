@@ -283,10 +283,16 @@ services:
       - TZ=Etc/UTC
       - VERSION=docker
       # - PLEX_CLAIM= #optional
+    ports:
+      - 32400:32400 # Media Server
+      - 1900:1900 # DLNA
+      - 32469:32469 # DLNA
+      - 5353:5353 # Bonjour
+      - 8324:8324 # Plex companion
     volumes:
-      - /path/to/library:/config
-      - /path/to/tvseries:/tv
-      - /path/to/movies:/movies
+      # - /path/to/library:/config
+      - /media:/tv
+      - /media:/movies
     restart: unless-stopped
 
   alpine-server:
