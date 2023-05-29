@@ -228,7 +228,7 @@ services:
       - ./services/llm/freedomGPT/app:/app
     tty: true
 
-  #
+  # Services OSINT
   # =============================
 
   metasploitable:
@@ -238,6 +238,17 @@ services:
       - ${SERVICE}
     tty: true
 
+  cve_database:
+    build:
+      context: ./
+      dockerfile: ./services/cve_database/.Dockerfile
+    environment:
+      - DB_HOST=${LOG_DATABASE}
+      - DB_NAME=cve
+      - DB_USER=${LOG_DATABASE_USER}
+      - DB_PASSWORD=${LOG_DATABASE_PASSWORD}
+    entrypoint: ["python","/update_cve_db.py"]
+
   # Servers
   # ==============================
 
@@ -246,8 +257,8 @@ services:
     ports:
       - "22:21"
       - "21000-21010:21000-21010"
-    volumes:
-      - "${FTP_ROOT}:/ftp"
+    # volumes:
+    #   - ${FTP_ROOT}:/ftp
     environment:
       - USERS=${FTP_USERS}
     depends_on:
@@ -260,24 +271,23 @@ services:
       start_period: 20s
       timeout: 10s
     tty: true
-    
-  rtmp:
-    image: alqutami/rtmp-hls
-    ports:
-      - 1935:1935 # RTMP socket
-      - 8080:8080 # Web player
-    volumes:
-      - "${RTMP_ROOT}:/ftp"
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    healthcheck:
-      test: ( curl --fail stmp://localhost:1935 && curl --fail http://localhost:8080 ) || exit 1
-      interval: 300s
-      retries: 5
-      start_period: 20s
-      timeout: 10s
+    restart: unless-stopped
 
+  plex:
+    image: lscr.io/linuxserver/plex:latest
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - VERSION=docker
+      # - PLEX_CLAIM= #optional
+    volumes:
+      - /path/to/library:/config
+      - /path/to/tvseries:/tv
+      - /path/to/movies:/movies
+    restart: unless-stopped
 
   alpine-server:
     build:
@@ -299,6 +309,7 @@ services:
     tty: true
     environment:
       - SERVER_MODE=${SERVER_MODE}
+    restart: unless-stopped
 
   ubuntu-server:
     build:
@@ -320,6 +331,7 @@ services:
     tty: true
     environment:
       - SERVER_MODE=${SERVER_MODE}
+    restart: unless-stopped
 
   # Clients - Headless
   # ==============================
@@ -434,7 +446,7 @@ services:
       - "6080:80"
     volumes:
       - /dev/shm:/dev/shm
-    restart: always
+    restart: unless-stopped
   
   kali:
     build:
@@ -445,16 +457,17 @@ services:
 
     cap_add:
       - "NET_RAW" 
+      - "NET_ADMIN"
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE} 
     volumes:
-      - ./client/kali/app:/app 
+      - ./client/kali/app:/root 
     environment:
       - USER:${KALI_USER}
       - PASSWORD:${KALI_PASSWORD}
     tty: true
-    restart: always
+    restart: unless-stopped
 
 
 # Volumes

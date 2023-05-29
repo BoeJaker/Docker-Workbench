@@ -42,9 +42,11 @@ apt-get install libpq-dev -y
 #     apt-get install kali-linux-large
 # }
 
+# Start SSH session
+ssh start &&
 
 # Start VNC session
-(Xvfb :1 -screen 0 1920x1080x16 &) && 
+(Xvfb :1 -screen 0 1920x1080x24 &) && 
 (sleep 5 && 
-x11vnc -display :1 -forever -usepw -shared -rfbport 5901 -bg) && 
+x11vnc -display :1 -ncache 10 -forever -usepw -shared -rfbport 5901 -bg) && 
 xfce4-session
