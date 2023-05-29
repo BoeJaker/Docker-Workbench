@@ -453,8 +453,10 @@ services:
       context: ./
       dockerfile: ./client/kali/.Dockerfile
     ports: 
+      - 5900:5900
       - 5901:5901
-
+      - 6000:6000
+      - 22:22
     cap_add:
       - "NET_RAW" 
       - "NET_ADMIN"
