@@ -294,6 +294,18 @@ services:
       - /media:/tv
       - /media:/movies
     restart: unless-stopped
+  
+  qtbittorrent:
+    image: wernight/qbittorrent:stable
+    # --user $UID:$GID \
+    ports:
+      - 8080:8080 
+      - 6881:6881/tcp 
+      - 6881:6881/udp 
+    volumes:
+    - /media/config:/config 
+    - /media/torrents:/torrents 
+    - /media/downloads:/downloads 
 
   alpine-server:
     build:
