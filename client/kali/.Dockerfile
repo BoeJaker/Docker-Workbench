@@ -7,7 +7,7 @@ RUN apt-get update
 RUN apt-get upgrade -y && apt-get autoremove -y && apt-get clean
 
 RUN apt-get install nano -y
-# RUN apt-get install apt-utils -y
+RUN apt-get install apt-utils -y
 
 # Install VNC packages
 RUN apt-get install kali-desktop-xfce -y
@@ -44,6 +44,31 @@ RUN git clone https://github.com/shizzz477/msploitego.git
 # Copy metaploit database configuration
 COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
 
+# RUN rm -R /root/.pyenv 2&>/dev/null
+
+# #pyenv dependencies
+# RUN apt-get install python3 python3-pip zlib1g zlib1g-dev libssl-dev libbz2-dev libsqlite3-dev libreadline-dev -y
+# RUN curl https://pyenv.run | bash 
+
+# RUN echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc  
+# RUN echo 'command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc  
+# RUN echo ' eval "$(pyenv init -)"' >> ~/.bashrc 
+
+# RUN export PATH="root/.pyenv/bin:$PATH"
+# RUN eval "$(pyenv init -)"
+# # eval "$(pyenv virtualenv-init -)"
+
+# RUN pyenv install 2.7.18
+
+# # Switch to python 2.7
+# RUN pyenv global 2.7.18
+
+# # msploitego dependencies on python 2.7
+# RUN pip install deprecated python-libnmap==0.7.0 NmapParser psycopg2  
+# RUN apt-get install libpq-dev -y
+
+# RUN pyenv global system
+
 # Configure SSH server
 RUN apt-get install -y openssh-server 
 RUN mkdir /var/run/sshd
@@ -60,12 +85,6 @@ EXPOSE 5901
 
 # Set up display environment variable
 ENV DISPLAY=:1
-
-# Copy scripts and add execution permissions
-COPY ./client/kali/init.sh /root/init.sh
-COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
-RUN chmod +x /root/init.sh
-RUN chmod +x /root/change_python_version.sh
 
 RUN apt-get autoremove -y && apt-get clean
 
@@ -154,5 +173,11 @@ RUN echo "umask 027" >> /etc/bash.bashrc
 # RUN iptables-save > /etc/iptables/rules.v4
 
 
+# Copy scripts and add execution permissions
+COPY ./client/kali/init.sh /init.sh
+COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
+RUN chmod +x /init.sh
+RUN chmod +x /root/change_python_version.sh
+ENV DEBIAN_FRONTEND=interactive
 # Start Xvfb and VNC server
-CMD [ "/bin/bash", "/root/init.sh"  ]
+CMD [ "/bin/sh", "/init.sh"  ]
