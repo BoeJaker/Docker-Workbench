@@ -1,6 +1,12 @@
-FROM kalilinux/kali-last-release as base
+FROM kalilinux/kali-last-release as environment
 
+#Setup terminal environment variables
+ENV TERM=xterm
+ENV SHELL=/bin/bash
+# ENV source ./.bashrc
 ENV DEBIAN_FRONTEND=noninteractive
+
+FROM environment as base
 
 # Update necessary packages
 RUN apt-get update
@@ -12,19 +18,8 @@ RUN apt-get install apt-utils -y
 # Install VNC packages
 RUN apt-get install kali-desktop-xfce -y
 RUN apt-get install x11vnc -y
-# RUN apt-get install firefox-esr -y
 RUN apt-get install xvfb -y
-# RUN apt-get install xauth -y
-# RUN apt-get install xfce4 -y
 RUN apt-get install xfce4-terminal -y
-# RUN apt-get install xfce4-goodies -y
-
-#Setup terminal environment variables
-RUN export TERM=xterm
-RUN export SHELL=/bin/bash
-# RUN source ./.bashrc
-
-
 
 FROM base as modified
 
@@ -44,9 +39,9 @@ RUN git clone https://github.com/shizzz477/msploitego.git
 # Copy metaploit database configuration
 COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.yml
 
+# #pyenv dependencies
 # RUN rm -R /root/.pyenv 2&>/dev/null
 
-# #pyenv dependencies
 # RUN apt-get install python3 python3-pip zlib1g zlib1g-dev libssl-dev libbz2-dev libsqlite3-dev libreadline-dev -y
 # RUN curl https://pyenv.run | bash 
 
@@ -78,7 +73,7 @@ RUN echo "X11Forwarding yes" >> /etc/ssh/sshd_config
 RUN echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
 # Expose VNC port
-EXPOSE 22
+# EXPOSE 22
 EXPOSE 6000
 EXPOSE 5900
 EXPOSE 5901
@@ -91,12 +86,6 @@ RUN apt-get autoremove -y && apt-get clean
 
 # OS Hardening
 FROM modified as hardened
-
-# Disable non-root user creation during the image build
-# RUN echo 'kalilinux ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/kalilinux
-
-# Update and upgrade the base system
-RUN apt-get update && apt-get upgrade -y
 
 # Install essential security tools and update them
 RUN apt-get install -y \
@@ -121,9 +110,6 @@ RUN find / -perm /4000 -type f -exec chmod a-s {} \; || true
 
 # Disable core dumps
 RUN echo "* hard core 0" > /etc/security/limits.d/10-kali-disable-core-dumps.conf
-
-# Configure sudoers file to limit sudo access
-# RUN echo "ALL ALL=(ALL:ALL) ALL" > /etc/sudoers.d/10-kali-security
 
 # Set a secure umask value
 RUN echo "umask 027" >> /etc/bash.bashrc
@@ -172,12 +158,13 @@ RUN echo "umask 027" >> /etc/bash.bashrc
 # # Save IP tables rules
 # RUN iptables-save > /etc/iptables/rules.v4
 
-
 # Copy scripts and add execution permissions
 COPY ./client/kali/init.sh /init.sh
-COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
 RUN chmod +x /init.sh
+RUN sed -i -e 's/\r$//' /init.sh 
+
+COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
 RUN chmod +x /root/change_python_version.sh
-ENV DEBIAN_FRONTEND=interactive
+
 # Start Xvfb and VNC server
 CMD [ "/bin/sh", "/init.sh"  ]
