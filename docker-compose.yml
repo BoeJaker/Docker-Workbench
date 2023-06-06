@@ -325,8 +325,8 @@ services:
     restart: unless-stopped
   
   qtbittorrent:
-    image: wernight/qbittorrent:stable
-    # --user $UID:$GID \
+    image: wernight/qbittorrent:latest
+    user: $UID:$GID
     ports:
       - 8080:8080 
       - 6881:6881/tcp 
@@ -519,15 +519,15 @@ services:
       - 5900:5900
       - 5901:5901
       - 6000:6000
-      - 22:22
+      # - 22:22
     cap_add:
       - "NET_RAW" 
       - "NET_ADMIN"
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE} 
-    volumes:
-      - ./client/kali/app:/root 
+    # volumes:
+    #   - ./client/kali/app:/root 
     environment:
       - USER:${KALI_USER}
       - PASSWORD:${KALI_PASSWORD}
