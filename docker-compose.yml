@@ -5,13 +5,14 @@ services:
   # Administration
   # ============================
 
-  adminer:
-    image: adminer
-    ports: 
-      - 8080:8080
-    links:
-      - postgres-log:db 
-    restart: always
+  # adminer:
+  #   image: adminer
+  #   container_name: adminer
+  #   ports: 
+  #     - 8080:8080
+  #   links:
+  #     - postgres-log:db 
+  #   restart: always
 
 
   # Services - Logging
@@ -26,7 +27,7 @@ services:
       - POSTGRES_USER=${POSTGRES_LOG_USER}
       - POSTGRES_PASSWORD=${POSTGRES_LOG_PASSWORD}
     ports:
-      - 5432:5432
+      - ${POSTGRES-LOG_PORT}:5432
     logging:
       driver: json-file 
     restart: always
@@ -42,7 +43,7 @@ services:
   # logspout:
   #   image: gliderlabs/logspout:latest
   #   ports:
-  #     - 514:514/udp
+  #     - ${LOGSPOUT_PORT}:514/udp
   #   depends_on:
   #     - postgres-log
   #   links:
@@ -51,10 +52,10 @@ services:
   #    - //var/run/docker.sock:/var/run/docker.sock
   #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
   
-  audit:
-    image: linuxkit/auditd
-    logging:
-      driver: json-file
+  # audit:
+  #   image: linuxkit/auditd
+  #   logging:
+  #     driver: json-file
   
   fluentd:
     build: 
@@ -68,25 +69,23 @@ services:
     volumes:
       - ./services/fluentd/fluent.conf:/fluentd/etc/fluent.conf
     depends_on:
-      # - kibana
-      # - elasticsearch
       - postgres-log
     links:
       - "elasticsearch"
     ports:
-      - "24224:24224"
-      - "24224:24224/udp"
+      - "${FLUENTD_PORT}:24224"
+      - "${FLUENTD_PORT}:24224/udp"
     logging:
       driver: json-file
     restart: always
-    deploy:  
-      resources:
-        limits:
-          cpus: '0.2'    # Limits the container to use up to 0.5 CPU cores
-          memory: '256M'  # Limits the container to use up to 256 MB of memory
-        reservations:
-          cpus: '0.1'    # Reserves at least 0.2 CPU cores for the container
-          memory: '128M'  # Reserves at least 128 MB of memory for the container
+    # deploy:  
+    #   resources:
+    #     limits:
+    #       cpus: '0.2'    # Limits the container to use up to 0.5 CPU cores
+    #       memory: '256M'  # Limits the container to use up to 256 MB of memory
+    #     reservations:
+    #       cpus: '0.1'    # Reserves at least 0.2 CPU cores for the container
+    #       memory: '128M'  # Reserves at least 128 MB of memory for the container
 
 
   # Services - Metrics
@@ -97,10 +96,8 @@ services:
     container_name: elasticsearch
     environment:
       - "discovery.type=single-node"
-    expose:
-      - "9200"
     ports:
-      - "9200:9200"
+      - "${ELASTICSEARCH_PORT}:9200"
     logging:
       driver: json-file 
     restart: always
@@ -116,7 +113,7 @@ services:
       - "XPACK_SECURITY_ENABLED=false"
       - "XPACK_WATCHER_ENABLED=false"
     ports:
-      - "5601:5601"
+      - "${KIBANA_PORT}:5601"
     logging:
       driver: json-file 
     restart: always
@@ -127,7 +124,7 @@ services:
       - ${LOG_SERVICE}
       - ${SERVICE}  
     ports:
-      - "9090:9090"
+      - "${PROMETHEUS_PORT}:9090"
     volumes: 
       - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
     restart: always
@@ -136,6 +133,7 @@ services:
   # Services - Networking
   # ============================
 
+  # Virtual Private Name Service
   twingate:
     image: twingate/connector:1
     environment:
@@ -148,6 +146,9 @@ services:
     logging:
       driver: json-file 
     restart: always
+  
+  firewall:
+    container_name: firewall
 
   ingress-controller:
     image: bitnami/nginx-ingress-controller
@@ -156,45 +157,29 @@ services:
       - ${SERVICE}
     restart: always
 
-  domain-controller:
-    image: instantlinux/samba-dc
-    environment:
-      - NETBIOS_NAME="boejaker"
-      - REALM="workspace.com"
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    network_mode: host  
-    cap_add:
-      - CAP_SYS_ADMIN
-    secrets:
-      - samba-admin-password
+  # Reverse Proxy Router
+  reverse-proxy:
+    container_name: reverse_proxy
+    build:
+      context: ./
+      dockerfile: ./reverse_proxy/.Dockerfile
+    ports:
+      - ${REVERSE_PROXY_PORT}:80
+    restart: always
     
   dns-sinkhole:
     image: patterns/sinkhole
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-
+  # Man in the Middle Proxy
   mitm:
     image: mitmproxy/mitmproxy
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
-
-  antivirus:
-    image: clamav/clamav
-    ports:
-      - 3310:3310
-    volumes:
-      - /path/to/clamav/config:/etc/clamav
-    environment:
-      - CLAMAV_CONFIG_PATH=/etc/clamav
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    restart: always
-
+  
+  # VNC Routing
   vnc-server:
     container_name: vnc-server
     build:
@@ -207,8 +192,24 @@ services:
       - DEPTH=24
       # Add any other necessary environment variables
     ports:
-      - "6900:5900"
+      - "${VNC-SERVER_PORT}:5900"
   
+
+  # Services - Security
+  # =====================
+  antivirus:
+    image: clamav/clamav
+    ports:
+      - ${ANTIVIRUS_PORT}:3310
+    volumes:
+      - /path/to/clamav/config:/etc/clamav
+    environment:
+      - CLAMAV_CONFIG_PATH=/etc/clamav
+    depends_on:
+      - ${LOG_SERVICE}
+      - ${SERVICE}
+    restart: always
+
   # Services - LLM
   # ============================
 
@@ -220,26 +221,26 @@ services:
       - ${LOG_SERVICE}
       - ${SERVICE}
     ports:
-      - "8888:7860"
+      - "${HUGGINGFACE_PORT}:7860"
     volumes:
       - ./services/llm/huggingface/app:/app
     tty: true
 
-  freedomgpt:
-    build:
-      context: ./
-      dockerfile: ./services/llm/freedomGPT/.Dockerfile
-      args:
-        GITHUB_TOKEN : ${GITHUB_TOKEN}
-        GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    ports:
-      - "8889:7869"
-    volumes:
-      - ./services/llm/freedomGPT/app:/app
-    tty: true
+  # freedomgpt:
+  #   build:
+  #     context: ./
+  #     dockerfile: ./services/llm/freedomGPT/.Dockerfile
+  #     args:
+  #       GITHUB_TOKEN : ${GITHUB_TOKEN}
+  #       GITHUB_USERNAME : ${GITHUB_USERNAME}
+  #   depends_on:
+  #     - ${LOG_SERVICE}
+  #     - ${SERVICE}
+  #   ports:
+  #     - "8889:7869"
+  #   volumes:
+  #     - ./services/llm/freedomGPT/app:/app
+  #   tty: true
 
   # Services OSINT
   # =============================
@@ -251,7 +252,7 @@ services:
       - ${SERVICE}
     tty: true
 
-  cve_database:
+  cve-database:
     build:
       context: ./
       dockerfile: ./services/cve_database/.Dockerfile
@@ -265,13 +266,13 @@ services:
   # Development environment
   # ===============================
 
-  dev_environment:
+  dev-environment:
     build:
       context: ./
     image: codercom/code-server:latest
-    container_name: dev_environment
+    container_name: dev-environment
     ports:
-      - 8011:8080
+      - ${DEV-ENVIRONMENT_PORT}:8080
     volumes:
       # -  $HOME/.config:/home/coder/.config" 
       -  ./:/home/coder/project" 
@@ -284,8 +285,8 @@ services:
   ftp:
     image: delfer/alpine-ftp-server
     ports:
-      - "22:21"
-      - "21000-21010:21000-21010"
+      - "${FTP_PORT}:21"
+      - "${FTP_PORT_RANGE}:21000-21010"
     # volumes:
     #   - ${FTP_ROOT}:/ftp
     environment:
@@ -302,56 +303,6 @@ services:
     tty: true
     restart: unless-stopped
 
-  plex:
-    image: lscr.io/linuxserver/plex:latest
-    container_name: plex
-    network_mode: host
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - VERSION=docker
-      # - PLEX_CLAIM= #optional
-    # ports:
-    #   - 32400:32400 # Media Server
-    #   - 1900:1900 # DLNA
-    #   - 32469:32469 # DLNA
-    #   - 5353:5353 # Bonjour
-    #   - 8324:8324 # Plex companion
-    volumes:
-      # - /path/to/library:/config
-      - /media:/tv
-      - /media:/movies
-    restart: unless-stopped
-  
-  qtbittorrent:
-    image: wernight/qbittorrent:latest
-    user: $UID:$GID
-    ports:
-      - 8080:8080 
-      - 6881:6881/tcp 
-      - 6881:6881/udp 
-    volumes:
-    - /media/config:/config 
-    - /media/torrents:/torrents 
-    - /media/downloads:/downloads 
-  
-  jackett:
-    image: lscr.io/linuxserver/jackett:latest
-    container_name: jackett
-    environment:
-      - PUID=1000
-      - PGID=1000
-      - TZ=Etc/UTC
-      - AUTO_UPDATE=true #optional
-      - RUN_OPTS= #optional
-    volumes:
-      - /media/config:/config
-      - /media/downloads:/downloads
-    ports:
-      - 9117:9117
-    restart: unless-stopped
-
   alpine-server:
     build:
       context: ./
@@ -366,7 +317,7 @@ services:
       - ${LOG_SERVICE}
       - ${SERVICE}
     ports:
-      - "8000:8000"
+      - "${ALPINE-SERVER_PORT}:8000"
     volumes:
       - ./server/alpine/app:/app
     tty: true
@@ -388,7 +339,7 @@ services:
       - ${LOG_SERVICE}
       - ${SERVICE}
     ports:
-      - "8000:8000"
+      - "${UBUNTU-SERVER_PORT}:8000"
     volumes:
       - ./server/Alpine/app:/app
     tty: true
@@ -482,7 +433,7 @@ services:
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
     ports:
-      - "80:8000"
+      - "${UBUNTU-CLIENT_PORT}:8000"
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
@@ -516,10 +467,9 @@ services:
       context: ./
       dockerfile: ./client/kali/.Dockerfile
     ports: 
-      - 5900:5900
-      - 5901:5901
-      - 6000:6000
-      # - 22:22
+      - ${KALI_PORT}:5900
+      - ${KALIX11_PORT}:6000
+      # - ${KALISSH_PORT}:22
     cap_add:
       - "NET_RAW" 
       - "NET_ADMIN"

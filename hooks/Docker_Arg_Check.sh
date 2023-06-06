@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set the path to the directory containing the Dockerfiles and docker-compose.yml file
-DOCKER_DIR="path/to/docker/files"
+DOCKER_DIR=./
 
 # Get a list of Dockerfiles in the directory
 DOCKERFILES=$(ls ${DOCKER_DIR}/*.dockerfile)
