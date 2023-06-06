@@ -195,6 +195,19 @@ services:
       - ${SERVICE}
     restart: always
 
+  vnc-server:
+    container_name: vnc-server
+    build:
+      context: .
+      dockerfile: ./services/vnc/.Dockerfile
+    # Replace 'your-desktop-container' with the name of your container running the desktop environment
+    environment:
+      - DISPLAY=kali:5900:1
+      - DIMENSIONS="1280x720"
+      - DEPTH=24
+      # Add any other necessary environment variables
+    ports:
+      - "6900:5900"
   
   # Services - LLM
   # ============================
@@ -248,6 +261,22 @@ services:
       - DB_USER=${LOG_DATABASE_USER}
       - DB_PASSWORD=${LOG_DATABASE_PASSWORD}
     entrypoint: ["python","/update_cve_db.py"]
+
+  # Development environment
+  # ===============================
+
+  dev_environment:
+    build:
+      context: ./
+    image: codercom/code-server:latest
+    container_name: dev_environment
+    ports:
+      - 8011:8080
+    volumes:
+      # -  $HOME/.config:/home/coder/.config" 
+      -  ./:/home/coder/project" 
+    environment:
+      - DOCKER_USER=1000
 
   # Servers
   # ==============================
@@ -322,41 +351,6 @@ services:
     ports:
       - 9117:9117
     restart: unless-stopped
-  
-  protonwire:
-    container_name: protonwire
-    # Use semver tags or sha256 hashes of manifests.
-    # using latest tag can lead to issues when used with
-    # automatic image updaters like watchtower.
-    image: ghcr.io/tprasadtp/protonwire:latest
-    init: true
-    restart: unless-stopped
-    environment:
-      # Quote this value as server name can contain '#'.
-      PROTONVPN_SERVER: "nl-free-127.protonvpn.net"
-      # Set this to 1 to show debug logs for issue forms.
-      DEBUG: "0"
-      # Set this to 0 to disable kill-switch.
-      KILL_SWITCH: "1"
-    # NET_ADMIN capability is mandatory!
-    cap_add:
-      - NET_ADMIN
-    # sysctl net.ipv4.conf.all.rp_filter is mandatory!
-    # net.ipv6.conf.all.disable_ipv6 disables IPv6 as protonVPN does not support IPv6.
-    # 'net.*' sysctls are not required on application containers,
-    # as they share network stack with protonwire container.
-    sysctls:
-      net.ipv4.conf.all.rp_filter: 2
-      net.ipv6.conf.all.disable_ipv6: 1
-    volumes:
-      - type: tmpfs
-        target: /tmp
-      - type: bind
-        source: private.key
-        target: /etc/protonwire/private-key
-        read_only: true
-    ports:
-      - 8000:80
 
   alpine-server:
     build:

@@ -5,8 +5,9 @@ from flask import Flask, render_template, redirect
 import os, time
 
 app = Flask(__name__)
+port=5000
 
-stack_name="workbench"
+stack_name="workbench" # as its spelt in docker
 
 def get_services():
     with open('docker-compose.yml', 'r') as file:
@@ -29,12 +30,11 @@ def get_container_port(service_config):
 def fuzzy_search(container_names, service_name):
     pattern = fr"{stack_name}-{service_name}-[0-9]*"  # Regex pattern
     regex = re.compile(re.escape(pattern))
-
     for container_name in container_names:
         if regex.match(container_name):
             return container_name
-
     return None
+
 def get_container_stats(container):
     stats = container.stats(stream=False)
     cpu_percent = None
@@ -73,8 +73,8 @@ def index():
             cpu_percent, memory_percent = get_container_stats(container)
             status = get_container_status(container)
             port = get_container_port(config)
-            start = f"http://localhost:5000/start/{service}"
-            stop = f"http://localhost:5000/stop/{service}"
+            start = f"http://localhost:{port}}/start/{service}"
+            stop = f"http://localhost:{port}}/stop/{service}"
             repo = config.get('client_repo')
             print(config)
 
@@ -90,8 +90,8 @@ def index():
 
             })
         else:
-            start = f"http://localhost:5000/start/{service}"
-            stop = f"http://localhost:5000/stop/{service}"
+            start = f"http://localhost:{port}/start/{service}"
+            stop = f"http://localhost:{port}/stop/{service}"
 
             service_data.append({
                 'service': service,
@@ -131,7 +131,6 @@ def stop_all():
     return redirect('/')
 
 
-
-
 if __name__ == '__main__':
-    app.run()
+    app.run(host="localhost", port=port, debug=True)
+
