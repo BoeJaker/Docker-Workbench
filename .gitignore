@@ -7,3 +7,6 @@ fluentd.conf
 **/postgres/data/
 **/app/
 /media/
+.config.py
+**.mp3
+/__pycache__
