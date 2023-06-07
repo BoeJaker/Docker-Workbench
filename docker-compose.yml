@@ -6,6 +6,7 @@ services:
   # ============================
 
   # adminer:
+  #   # Sensor
   #   image: adminer
   #   container_name: adminer
   #   ports: 
@@ -19,6 +20,7 @@ services:
   # ============================
 
   postgres-log:
+    # Log Database
     image: postgres:latest
     volumes:
       - ./services/postgres/data:/var/lib/postgresql/data  
@@ -41,6 +43,7 @@ services:
           memory: '128M'  # Reserves at least 128 MB of memory for the container
 
   # logspout:
+  #   # Log collector
   #   image: gliderlabs/logspout:latest
   #   ports:
   #     - ${LOGSPOUT_PORT}:514/udp
@@ -58,6 +61,7 @@ services:
   #     driver: json-file
   
   fluentd:
+    # Log collector
     build: 
       context: ./
       dockerfile: ./services/fluentd/.Dockerfile
@@ -92,6 +96,7 @@ services:
   # ============================
 
   elasticsearch:
+    # Data Search
     image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
     container_name: elasticsearch
     environment:
@@ -103,6 +108,7 @@ services:
     restart: always
 
   kibana:
+    # Data Visualisation
     image: docker.elastic.co/kibana/kibana:7.13.1
     links:
       - "elasticsearch"
@@ -119,6 +125,7 @@ services:
     restart: always
 
   prometheus:
+    # Metric collector
     image: prom/prometheus
     depends_on:
       - ${LOG_SERVICE}
@@ -135,6 +142,7 @@ services:
 
   # Virtual Private Name Service
   twingate:
+  # Allows name resolution of containers from external networks
     image: twingate/connector:1
     environment:
       - TENANT_URL=${TENANT_URL}
@@ -150,15 +158,9 @@ services:
   # firewall:
   #   container_name: firewall
 
-  ingress-controller:
-    image: bitnami/nginx-ingress-controller
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    restart: always
-
   # Reverse Proxy Router
   reverse-proxy:
+    # Forwards requests from outside the network to the requested service
     container_name: reverse_proxy
     build:
       context: ./
@@ -166,14 +168,18 @@ services:
     ports:
       - ${REVERSE_PROXY_PORT}:80
     restart: always
-    
+  
+  # DNS Blackhole
   dns-sinkhole:
+    # Blocks malicious content and adverts from resolving nameservers
     image: patterns/sinkhole
     depends_on:
       - ${LOG_SERVICE}
       - ${SERVICE}
+
   # Man in the Middle Proxy
   mitm:
+    # Allows network traffic introspection
     image: mitmproxy/mitmproxy
     depends_on:
       - ${LOG_SERVICE}
@@ -181,6 +187,7 @@ services:
   
   # VNC Routing
   vnc-server:
+    # Forwards X11 sessions of containers over the VNC protocol
     container_name: vnc-server
     build:
       context: .
@@ -198,6 +205,7 @@ services:
   # Services - Security
   # =====================
   antivirus:
+    # Scans containers for threats
     image: clamav/clamav
     ports:
       - ${ANTIVIRUS_PORT}:3310
@@ -294,9 +302,8 @@ services:
     ports:
       - "${DEV_ENVIRONMENT_PORT}:8080"
     volumes:
-      # - ./services/dev/config:/home/coder/.config/code-server
-      - ./services/dev/echo_config.sh:/echo_config.sh
-      - ./:/home/coder/project
+      # -  $HOME/.config:/home/coder/.config" 
+      -  ${DEV_ROOT}:/home/coder/project" 
     environment:
       - DOCKER_USER=1000
       - PASSWORD=adalovelace
