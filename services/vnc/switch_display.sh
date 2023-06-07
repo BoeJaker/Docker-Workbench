@@ -4,7 +4,7 @@
 network_range=$(ifconfig | grep -oE 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1' | awk '{print $2}')
 
 # Perform the network scan
-scan_results=$(nmap -p 5900 "$network_range" -oG - | grep "5900/open")
+scan_results=$(nmap -p 5901 "$network_range" -oG - | grep "5901/open")
 
 # Extract the IP addresses of hosts with open VNC ports
 host_ips=$(echo "$scan_results" | awk '{print $2}')
