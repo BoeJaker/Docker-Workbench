@@ -300,13 +300,13 @@ services:
     container_name: dev-environment
     user: 1000:1000
     ports:
-      - "${DEV_ENVIRONMENT_PORT}:8080"
+      - "127.0.0.1:${DEV_ENVIRONMENT_PORT}:8080"
     volumes:
       # -  $HOME/.config:/home/coder/.config" 
       -  ${DEV_ROOT}:/home/coder/project" 
     environment:
       - DOCKER_USER=1000
-      - PASSWORD=adalovelace
+      - PASSWORD=${ADMIN_PASSWORD}
     # entrypoint: ["/bin/bash", "-c", "/echo_config.sh"]
 
 
