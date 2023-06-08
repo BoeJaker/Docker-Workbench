@@ -73,8 +73,8 @@ def index():
             cpu_percent, memory_percent = get_container_stats(container)
             status = get_container_status(container)
             port = get_container_port(config)
-            start = f"http://localhost:{port}}/start/{service}"
-            stop = f"http://localhost:{port}}/stop/{service}"
+            start = f"http://localhost:{port}/start/{service}"
+            stop = f"http://localhost:{port}/stop/{service}"
             repo = config.get('client_repo')
             print(config)
 
