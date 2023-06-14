@@ -304,7 +304,7 @@ services:
       - IP_ADDRESS=${IP_ADDRESS}
     ports:
       - "${DEV_ENVIRONMENT_PORT}:8080"
-      - "${DEV_HTTP_PORT}:8081"
+      # - "${DEV_HTTP_PORT}:8081"
     volumes:
       # -  $HOME/.config:/home/coder/.config" 
       -  ${DEV_ROOT}:/home/coder/project" 
