@@ -4,3 +4,6 @@
 [submodule "Docker-Healthchecks"]
 	path = Docker-Healthchecks
 	url = https://github.com/BoeJaker/Docker-Healthchecks.git
+[submodule "Docker-Red-Lab"]
+	path = Docker-Red-Lab
+	url = https://github.com/BoeJaker/Docker-Red-Lab.git
