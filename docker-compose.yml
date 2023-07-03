@@ -2,22 +2,18 @@ version: "3"
  
 services:
 
-  # Administration
+  # Services - Database
   # ============================
 
-  # adminer:
-  #   # Sensor
-  #   image: adminer
-  #   container_name: adminer
-  #   ports: 
-  #     - 8080:8080
-  #   links:
-  #     - postgres-log:db 
-  #   restart: always
-
-
-  # Services - Logging
-  # ============================
+  adminer:
+    # Sensor
+    image: adminer
+    container_name: adminer
+    ports: 
+      - ${PHP_MY_ADMIN_PORT}:8080
+    links:
+      - postgres-log:db 
+    restart: always
 
   postgres-log:
     # Log Database
@@ -42,6 +38,10 @@ services:
           cpus: '0.1'    # Reserves at least 0.1 CPU cores for the container
           memory: '128M'  # Reserves at least 128 MB of memory for the container
 
+  
+  # Logging
+  # ============================
+
   # logspout:
   #   # Log collector
   #   image: gliderlabs/logspout:latest
@@ -55,10 +55,16 @@ services:
   #    - //var/run/docker.sock:/var/run/docker.sock
   #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
   
-  # audit:
-  #   image: linuxkit/auditd
-  #   logging:
-  #     driver: json-file
+  auditd:
+    image: your-auditd-image:tag
+    volumes:
+      - /var/log/audit:/var/log/audit   # Mount the host's Audit log directory to store Audit logs
+      - /path/to/audit.rules:/etc/audit/rules.d/audit.rules   # Mount custom Audit rules from host
+    cap_add:
+      - AUDIT_CONTROL   # Grant necessary capabilities to the container
+      - AUDIT_READ
+    privileged: true   # Enable privileged mode to access host's Audit subsystem
+    restart: always
   
   fluentd:
     # Log collector
