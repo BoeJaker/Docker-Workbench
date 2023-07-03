@@ -4,7 +4,7 @@ FROM kalilinux/kali-last-release as environment
 ENV TERM=xterm
 ENV SHELL=/bin/bash
 # ENV source ./.bashrc
-ENV DEBIAN_FRONTEND=noninteractive
+# ENV DEBIAN_FRONTEND=noninteractive
 
 FROM environment as base
 
@@ -65,12 +65,12 @@ COPY ./client/kali/database.yml /usr/share/metasploit-framework/config/database.
 # RUN pyenv global system
 
 # # Configure SSH server
-# RUN apt-get install -y openssh-server 
-# RUN mkdir /var/run/sshd
-# RUN echo 'root:password' | chpasswd
-# RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
-# RUN echo "X11Forwarding yes" >> /etc/ssh/sshd_config
-# RUN echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
+RUN apt-get install -y openssh-server 
+RUN mkdir /var/run/sshd
+RUN echo 'root:password' | chpasswd
+RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
+RUN echo "X11Forwarding yes" >> /etc/ssh/sshd_config
+RUN echo "X11UseLocalhost no" >> /etc/ssh/sshd_config
 
 # Expose VNC port
 # EXPOSE 22
@@ -85,7 +85,7 @@ RUN apt-get autoremove -y && apt-get clean
 
 
 # # OS Hardening
-# FROM modified as hardened
+FROM modified as hardened
 
 # Install essential security tools and update them
 RUN apt-get install -y \
@@ -96,25 +96,25 @@ RUN apt-get install -y \
     && apt-get clean
 
 # # Configure Lynis security auditing tool
-# # RUN sed -i 's/^# CRONFILE=.*/CRONFILE="no"/' /etc/lynis/lynis.conf
+# RUN sed -i 's/^# CRONFILE=.*/CRONFILE="no"/' /etc/lynis/lynis.conf
 
 # # Remove unnecessary services and packages
-# RUN apt-get purge -y \
-#     rpcbind \
-#     telnet \
-#     && apt-get autoremove -y && apt-get clean
+RUN apt-get purge -y \
+    rpcbind \
+    telnet \
+    && apt-get autoremove -y && apt-get clean
 
 # # Remove unnecessary setuid and setgid files
-# RUN find / -perm /6000 -type f -exec chmod a-s {} \; || true
-# RUN find / -perm /4000 -type f -exec chmod a-s {} \; || true
+RUN find / -perm /6000 -type f -exec chmod a-s {} \; || true
+RUN find / -perm /4000 -type f -exec chmod a-s {} \; || true
 
 # # Disable core dumps
-# RUN echo "* hard core 0" > /etc/security/limits.d/10-kali-disable-core-dumps.conf
+RUN echo "* hard core 0" > /etc/security/limits.d/10-kali-disable-core-dumps.conf
 
 # Set a secure umask value
 RUN echo "umask 027" >> /etc/bash.bashrc
 
-# Network Hardening
+# # Network Hardening
 # FROM hardened as net-hardened
 
 # # Install IP tables and related tools

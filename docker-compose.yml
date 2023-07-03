@@ -234,22 +234,6 @@ services:
       - ./services/llm/huggingface/app:/app
     tty: true
 
-  # freedomgpt:
-  #   build:
-  #     context: ./
-  #     dockerfile: ./services/llm/freedomGPT/.Dockerfile
-  #     args:
-  #       GITHUB_TOKEN : ${GITHUB_TOKEN}
-  #       GITHUB_USERNAME : ${GITHUB_USERNAME}
-  #   depends_on:
-  #     - ${LOG_SERVICE}
-  #     - ${SERVICE}
-  #   ports:
-  #     - "8889:7869"
-  #   volumes:
-  #     - ./services/llm/freedomGPT/app:/app
-  #   tty: true
-
   # Services OSINT
   # =============================
 
@@ -271,44 +255,28 @@ services:
       - DB_PASSWORD=${LOG_DATABASE_PASSWORD}
     entrypoint: ["python","/update_cve_db.py"]
 
-  # Development environment
-  # ===============================
-  # coder:
-  #   # This MUST be stable for our documentation and
-  #   # other automations.
-  #   image: ghcr.io/coder/coder:${CODER_VERSION:-latest}
-  #   ports:
-  #     - "7080:7080"
-  #   environment:
-  #     CODER_PG_CONNECTION_URL: "postgresql://${POSTGRES_LOG_USER:-username}:${POSTGRES_LOG_PASSWORD:-password}@database/${POSTGRES_DB:-coder}?sslmode=disable"
-  #     CODER_HTTP_ADDRESS: "0.0.0.0:7080"
-  #     # You'll need to set CODER_ACCESS_URL to an IP or domain
-  #     # that workspaces can reach. This cannot be localhost
-  #     # or 127.0.0.1 for non-Docker templates!
-  #     CODER_ACCESS_URL: "${CODER_ACCESS_URL}"
-  #   # If the coder user does not have write permissions on
-  #   # the docker socket, you can uncomment the following
-  #   # lines and set the group ID to one that has write
-  #   # permissions on the docker socket.
-  #   #group_add:
-  #   #  - "998" # docker group on host
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-
   dev-environment:
     image: codercom/code-server:latest
     container_name: dev-environment
     user: 1000:1000
     ports:
-      - "127.0.0.1:${DEV_ENVIRONMENT_PORT}:8080"
+      - "${DEV_ENVIRONMENT_PORT}:8080"
     volumes:
-      # -  $HOME/.config:/home/coder/.config" 
-      -  ${DEV_ROOT}:/home/coder/project" 
+      -  ${DEV_ROOT}:/home/coder/
     environment:
       - DOCKER_USER=1000
       - PASSWORD=${ADMIN_PASSWORD}
-    # entrypoint: ["/bin/bash", "-c", "/echo_config.sh"]
 
+  python-bootstrap:
+    build:
+      context: ./
+      dockerfile: ./services/python_bootstrap/Dockerfile
+    volumes:
+      - ./services/python_bootstrap/repos:/app
+    environment:
+      - GIT_REPO_URL:""
+      - GIT_PULL:"true"
+      - MAIN_PY_FILE:"app.py"
 
   # Servers
   # ==============================
@@ -498,7 +466,7 @@ services:
       context: ./
       dockerfile: ./client/kali/.Dockerfile
     ports: 
-      - ${KALI_PORT}:5900
+      - ${KALI_PORT}:5901
       - ${KALIX11_PORT}:6000
       # - ${KALISSH_PORT}:22
     cap_add:
@@ -520,9 +488,9 @@ services:
 # ==============================
 # volumes:
 #   pgdata:
-secrets:
-  samba-admin-password:
-    file: ./secrets/samba-admin-password
+# secrets:
+#   samba-admin-password:
+#     file: ./secrets/samba-admin-password
 
 
 # Example composition
