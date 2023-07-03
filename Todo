@@ -1,3 +1,4 @@
 
-1. [] Implement git submodules for healthchecks, hooks and each component archetype like clients, llm, logging
+1. [X] Implement git submodules for healthchecks, hooks and each component archetype like clients, llm, logging
 2. [] Go over environment variables and ensure all values are broken out to the .env i.e. kali service has env vars defined in the yaml
+3. [] Add hooks to detect keys or other errors
