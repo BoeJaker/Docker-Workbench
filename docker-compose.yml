@@ -39,7 +39,7 @@ services:
           memory: '128M'  # Reserves at least 128 MB of memory for the container
 
   
-  # Logging
+  # Services - Logging
   # ============================
 
   # logspout:
@@ -79,7 +79,7 @@ services:
     volumes:
       - ./services/fluentd/fluent.conf:/fluentd/etc/fluent.conf
     depends_on:
-      - postgres-log
+      - ${LOG_SERVICE}
     links:
       - "elasticsearch"
     ports:
@@ -133,9 +133,7 @@ services:
   prometheus:
     # Metric collector
     image: prom/prometheus
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}  
+  
     ports:
       - "${PROMETHEUS_PORT}:9090"
     volumes: 
@@ -155,8 +153,6 @@ services:
       - ACCESS_TOKEN=${ACCESS_TOKEN}
       - REFRESH_TOKEN=${REFRESH_TOKEN}
       - TWINGATE_LABEL_HOSTNAME=${TWINGATE_LABEL_HOSTNAME}
-    depends_on:
-      - ${LOG_SERVICE}
     logging:
       driver: json-file 
     restart: always
@@ -179,18 +175,12 @@ services:
   dns-sinkhole:
     # Blocks malicious content and adverts from resolving nameservers
     image: patterns/sinkhole
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
 
   # Man in the Middle Proxy
   mitm:
     # Allows network traffic introspection
     image: mitmproxy/mitmproxy
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-  
+
   # VNC Routing
   vnc-server:
     # Forwards X11 sessions of containers over the VNC protocol
@@ -206,6 +196,26 @@ services:
       # Add any other necessary environment variables
     ports:
       - "${VNC_SERVER_PORT}:5900"
+
+
+  ftp:
+    image: delfer/alpine-ftp-server
+    ports:
+      - "${FTP_PORT}:21"
+      - "${FTP_PORT_RANGE}:21000-21010"
+    # volumes:
+    #   - ${FTP_ROOT}:/ftp
+    environment:
+      - USERS=${FTP_USERS}
+
+    healthcheck:
+      test: curl --fail ftp://localhost:21 || exit 1
+      interval: 180s
+      retries: 5
+      start_period: 20s
+      timeout: 10s
+    tty: true
+    restart: unless-stopped
   
 
   # Services - Security
@@ -219,9 +229,6 @@ services:
       - /path/to/clamav/config:/etc/clamav
     environment:
       - CLAMAV_CONFIG_PATH=/etc/clamav
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
     restart: always
 
   # Services - LLM
@@ -231,24 +238,23 @@ services:
     build:
       context: ./
       dockerfile: ./services/llm/huggingface/.Dockerfile
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
     ports:
       - "${HUGGINGFACE_PORT}:7860"
     volumes:
       - ./services/llm/huggingface/app:/app
     tty: true
+    restart: unless-stopped
 
   # Services OSINT
   # =============================
+  
+  openvas:
+    image: greenbone/openvas-scanner
+    restart: unless-stopped
 
   metasploitable:
     image: tleemcjr/metasploitable2
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    tty: true
+    restart: unless-stopped
 
   cve-database:
     build:
@@ -289,28 +295,6 @@ services:
 
   # Servers
   # ==============================
-
-  ftp:
-    image: delfer/alpine-ftp-server
-    ports:
-      - "${FTP_PORT}:21"
-      - "${FTP_PORT_RANGE}:21000-21010"
-    # volumes:
-    #   - ${FTP_ROOT}:/ftp
-    environment:
-      - USERS=${FTP_USERS}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
-    healthcheck:
-      test: curl --fail ftp://localhost:21 || exit 1
-      interval: 180s
-      retries: 5
-      start_period: 20s
-      timeout: 10s
-    tty: true
-    restart: unless-stopped
-
   alpine-server:
     build:
       context: ./
@@ -321,9 +305,7 @@ services:
         SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     ports:
       - "${ALPINE_SERVER_PORT}:8000"
     volumes:
@@ -343,9 +325,7 @@ services:
         SERVER_REPO : ${SERVER_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     ports:
       - "${UBUNTU_SERVER_PORT}:8000"
     volumes:
@@ -367,9 +347,7 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     volumes:
       - ./client/windows/app:/app
     environment:
@@ -386,9 +364,7 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     volumes:
       - ./clientandroid/app:/app
     environment:
@@ -404,9 +380,7 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     volumes:
       - ./client/ios/app:/app
     environment:
@@ -422,9 +396,7 @@ services:
         CLIENT_REPO : ${CLIENT_REPO}
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     volumes:
       - ./client/osx/app:/app
     environment:
@@ -442,9 +414,7 @@ services:
         GITHUB_USERNAME : ${GITHUB_USERNAME}
     ports:
       - "${UBUNTU_CLIENT_PORT}:8000"
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE}
+
     volumes:
       - ./client/ubuntu/app:/app
     environment:
@@ -461,9 +431,6 @@ services:
 
   vnc:
     image: dorowu/ubuntu-desktop-lxde-vnc
-    depends_on: 
-      - ${LOG_SERVICE}
-      - ${SERVICE}
     ports:
       - "6080:80"
     volumes:
@@ -481,9 +448,7 @@ services:
     cap_add:
       - "NET_RAW" 
       - "NET_ADMIN"
-    depends_on:
-      - ${LOG_SERVICE}
-      - ${SERVICE} 
+ 
     # volumes:
     #   - ./client/kali/app:/root 
     environment:

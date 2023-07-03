@@ -1,12 +1,38 @@
-.env
-.vscode
-./hooks
-./secrets
-.secrets
-fluentd.conf
-**/postgres/data/
-**/app/
-/media/
-.config.py
+# Ignore .env files
+**.env
+
+# Ignore secrets directory
+**./secrets
+**.secrets
+
+# Ignore config.py file
+**config.py
+
+# Ignore Visual Studio Code files
+**.vscode
+
+# Ignore hooks directory
+**./hooks
+
+# Ignore Fluentd configuration file
+**fluentd.conf
+
+# Ignore PostgreSQL data directory
+**postgres/data/
+
+# Ignore app directory
+**app/
+
+# Ignore media directory
+**media/
+# Ignore .mp3 files
 **.mp3
-/__pycache__
+# Ignore .mp3 files
+**.mp4
+# Ignore .mp3 files
+**.aac
+# Ignore .mp3 files
+**.mkv
+
+# Ignore __pycache__ directory
+__pycache__
