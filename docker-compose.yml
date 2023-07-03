@@ -259,8 +259,11 @@ services:
     image: codercom/code-server:latest
     container_name: dev-environment
     user: 1000:1000
+    environment:
+      - DEV_HTTP_PORT=${DEV_HTTP_PORT}
+      - IP_ADDRESS=${IP_ADDRESS}
     ports:
-      - "${DEV_ENVIRONMENT_PORT}:8080"
+      - "127.0.0.1:${DEV_ENVIRONMENT_PORT}:8080"
     volumes:
       -  ${DEV_ROOT}:/home/coder/
     environment:
