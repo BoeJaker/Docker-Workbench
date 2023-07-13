@@ -42,18 +42,18 @@ services:
   # Services - Logging
   # ============================
 
-  # logspout:
-  #   # Log collector
-  #   image: gliderlabs/logspout:latest
-  #   ports:
-  #     - ${LOGSPOUT_PORT}:514/udp
-  #   depends_on:
-  #     - postgres-log
-  #   links:
-  #     - "postgres-log"
-  #   volumes:
-  #    - //var/run/docker.sock:/var/run/docker.sock
-  #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
+  logspout:
+    # Log collector
+    image: gliderlabs/logspout:latest
+    ports:
+      - ${LOGSPOUT_PORT}:514/udp
+    depends_on:
+      - postgres-log
+    links:
+      - "postgres-log"
+    volumes:
+     - //var/run/docker.sock:/var/run/docker.sock
+    command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
   
   auditd:
     image: your-auditd-image:tag
@@ -275,7 +275,7 @@ services:
       - DEV_HTTP_PORT=${DEV_HTTP_PORT}
       - IP_ADDRESS=${IP_ADDRESS}
     ports:
-      - "127.0.0.1:${DEV_ENVIRONMENT_PORT}:8080"
+      - "${DEV_ENVIRONMENT_PORT}:8080"
     volumes:
       -  ${DEV_ROOT}:/home/coder/
     environment:

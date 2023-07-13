@@ -162,7 +162,28 @@ Ports:
 Environment:  
 Description: 
 
-### Metrics
+### VNC Clients
+
+#### Ubuntu
+Name: vnc (ubuntu-vnc)  
+Environment:  
+Description: 
+
+#### Kali
+Name: kali (kali-vnc)  
+Environment:  
+Description: 
+
+<!-- #### NoVNC
+Name: novnc   
+Ports: 6080:80  
+Environment:  
+Description:  
+Virtual Network Computing, a technology that allows remote access and control of a computer or server over a network. Capable of forwarding any container using an x11 interface. -->
+
+### Logging
+
+To enable logging you need to edit dockers daemon.json file with the log driver of your choice either fluentd or logspout
 
 #### Fuentd
 Name: fluentd   
@@ -177,6 +198,8 @@ Ports:
 Environment:  
 Description:  
 Note: to enable logspout please amend your docker installations daemon.json file to match that the sample provided in the [source](daemon.json)  
+
+### Metrics
 
 #### Grafana
 Name: logspout   
@@ -199,31 +222,13 @@ Environment:
 Description:  
 <br>
 
-### VNC Clients
-#### Ubuntu
-Name: vnc (ubuntu-vnc)  
-Environment:  
-Description: 
+### Networking
 
-#### Kali
-Name: kali (kali-vnc)  
-Environment:  
-Description: 
-
-#### NoVNC
-Name: novnc   
-Ports: 6080:80  
-Environment:  
-Description:  
-Virtual Network Computing, a technology that allows remote access and control of a computer or server over a network. Capable of forwarding any container using an x11 interface.
-
-#### VPN  
+<!-- #### VPN  
 Name: VPN  
 Environment:  
 Description:  
-Provides a virtual private network that can be accessed, internally site-to-site or remotely
-
-### Networking
+Provides a virtual private network that can be accessed, internally site-to-site or remotely -->
 
 #### Twingate  
 Name: twingate  
