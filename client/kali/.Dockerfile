@@ -159,12 +159,15 @@ RUN echo "umask 027" >> /etc/bash.bashrc
 # RUN iptables-save > /etc/iptables/rules.v4
 
 # Copy scripts and add execution permissions
-COPY ./client/kali/init.sh /init.sh
-RUN chmod +x /init.sh
-RUN sed -i -e 's/\r$//' /init.sh 
+COPY ./client/kali/pyenv_init.sh /pyenv_init.sh
+RUN chmod +x /pyenv_init.sh
+# Ensure line endings are correct
+RUN sed -i -e 's/\r$//' /pyenv_init.sh 
 
 COPY ./client/kali/change_python_version.sh /root/change_python_version.sh
 RUN chmod +x /root/change_python_version.sh
+# Ensure line endings are correct
+RUN sed -i -e 's/\r$//' /change_python_version.sh 
 
 # Start Xvfb and VNC server
 CMD [ "/bin/sh", "/init.sh"  ]

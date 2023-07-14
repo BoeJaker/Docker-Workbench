@@ -245,13 +245,9 @@ services:
     tty: true
     restart: unless-stopped
 
-  # Services OSINT
+  # Services Development Environment
   # =============================
   
-  openvas:
-    image: greenbone/openvas-scanner
-    restart: unless-stopped
-
   metasploitable:
     image: tleemcjr/metasploitable2
     restart: unless-stopped
@@ -429,39 +425,39 @@ services:
   # Clients - VNC
   # ===================================
 
-  vnc:
-    image: dorowu/ubuntu-desktop-lxde-vnc
-    ports:
-      - "6080:80"
-    volumes:
-      - /dev/shm:/dev/shm
-    restart: unless-stopped
+  # vnc:
+  #   image: dorowu/ubuntu-desktop-lxde-vnc
+  #   ports:
+  #     - "6080:80"
+  #   volumes:
+  #     - /dev/shm:/dev/shm
+  #   restart: unless-stopped
   
-  kali:
-    build:
-      context: ./
-      dockerfile: ./client/kali/.Dockerfile
-    ports: 
-      - ${KALI_PORT}:5901
-      - ${KALIX11_PORT}:6000
-      # - ${KALISSH_PORT}:22
-    cap_add:
-      - "NET_RAW" 
-      - "NET_ADMIN"
+  # kali:
+  #   build:
+  #     context: ./
+  #     dockerfile: ./client/kali/.Dockerfile
+  #   ports: 
+  #     - ${KALI_PORT}:5901
+  #     - ${KALIX11_PORT}:6000
+  #     # - ${KALISSH_PORT}:22
+  #   cap_add:
+  #     - "NET_RAW" 
+  #     - "NET_ADMIN"
  
     # volumes:
     #   - ./client/kali/app:/root 
-    environment:
-      - USER:${KALI_USER}
-      - PASSWORD:${KALI_PASSWORD}
-    tty: true
-    restart: unless-stopped
+    # environment:
+    #   - USER:${KALI_USER}
+    #   - PASSWORD:${KALI_PASSWORD}
+    # tty: true
+    # restart: unless-stopped
 
 
 # Volumes
 # ==============================
-# volumes:
-#   pgdata:
+volumes:
+  pgdata:
 # secrets:
 #   samba-admin-password:
 #     file: ./secrets/samba-admin-password
