@@ -2,6 +2,17 @@ version: "3"
  
 services:
 
+
+  # Meta-Services
+  metrics:
+    image: tianon/true
+    depends_on: [cadvisor, prometheus, grafana]
+  
+  logging:
+    image: tianon/true
+    depends_on: [fluentd, adminer, auditd, prometheus, kibana, elasticsearch, postgres-log]
+
+
   # Services - Database
   # ============================
 
@@ -14,6 +25,7 @@ services:
     links:
       - postgres-log:db 
     restart: always
+
 
   postgres-log:
     # Log Database
@@ -55,6 +67,7 @@ services:
      - //var/run/docker.sock:/var/run/docker.sock
     command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
   
+
   auditd:
     image: your-auditd-image:tag
     volumes:
@@ -66,6 +79,7 @@ services:
     privileged: true   # Enable privileged mode to access host's Audit subsystem
     restart: always
   
+
   fluentd:
     # Log collector
     build: 
@@ -113,6 +127,7 @@ services:
       driver: json-file 
     restart: always
 
+
   kibana:
     # Data Visualisation
     image: docker.elastic.co/kibana/kibana:7.13.1
@@ -129,6 +144,7 @@ services:
     logging:
       driver: json-file 
     restart: always
+
 
   prometheus:
     # Metric collector
@@ -156,9 +172,7 @@ services:
     logging:
       driver: json-file 
     restart: always
-  
-  # firewall:
-  #   container_name: firewall
+
 
   # Reverse Proxy Router
   reverse-proxy:
@@ -171,15 +185,18 @@ services:
       - ${REVERSE_PROXY_PORT}:80
     restart: always
   
+
   # DNS Blackhole
   dns-sinkhole:
     # Blocks malicious content and adverts from resolving nameservers
     image: patterns/sinkhole
 
+
   # Man in the Middle Proxy
   mitm:
     # Allows network traffic introspection
     image: mitmproxy/mitmproxy
+
 
   # VNC Routing
   vnc-server:
@@ -263,6 +280,7 @@ services:
       - DB_PASSWORD=${LOG_DATABASE_PASSWORD}
     entrypoint: ["python","/update_cve_db.py"]
 
+
   dev-environment:
     image: codercom/code-server:latest
     container_name: dev-environment
@@ -277,6 +295,7 @@ services:
     environment:
       - DOCKER_USER=1000
       - PASSWORD=${ADMIN_PASSWORD}
+
 
   python-bootstrap:
     build:
@@ -302,6 +321,7 @@ services:
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
 
+
     ports:
       - "${ALPINE_SERVER_PORT}:8000"
     volumes:
@@ -310,6 +330,7 @@ services:
     environment:
       - SERVER_MODE=${SERVER_MODE}
     restart: unless-stopped
+
 
   ubuntu-server:
     build:
@@ -322,6 +343,7 @@ services:
         GITHUB_TOKEN : ${GITHUB_TOKEN}
         GITHUB_USERNAME : ${GITHUB_USERNAME}
 
+
     ports:
       - "${UBUNTU_SERVER_PORT}:8000"
     volumes:
@@ -333,6 +355,7 @@ services:
 
   # Clients - Headless
   # ==============================
+  
   windows-client:
     build:
       context: ./
@@ -366,6 +389,7 @@ services:
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
 
+
   ios-client:
     build:
       context: ./
@@ -381,6 +405,7 @@ services:
       - ./client/ios/app:/app
     environment:
       - CLIENT_MODE=${CLIENT_MODE}
+
 
   osx-client:
     build:
@@ -398,6 +423,7 @@ services:
     environment:
       - CLIENT_MODE=${CLIENT_MODE} 
 
+
   ubuntu-client:
     build:
       context: ./
@@ -410,6 +436,7 @@ services:
         GITHUB_USERNAME : ${GITHUB_USERNAME}
     ports:
       - "${UBUNTU_CLIENT_PORT}:8000"
+
 
     volumes:
       - ./client/ubuntu/app:/app
@@ -458,9 +485,6 @@ services:
 # ==============================
 volumes:
   pgdata:
-# secrets:
-#   samba-admin-password:
-#     file: ./secrets/samba-admin-password
 
 
 # Example composition
