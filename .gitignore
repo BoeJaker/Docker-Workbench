@@ -4,6 +4,9 @@
 # Ignore secrets directory
 **./secrets
 **.secrets
+**.htpasswd
+**./ssl_passwords.txt
+**./access
 
 # Ignore config.py file
 **config.py
