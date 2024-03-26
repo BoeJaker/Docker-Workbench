@@ -170,4 +170,4 @@ RUN chmod +x /root/change_python_version.sh
 RUN sed -i -e 's/\r$//' /change_python_version.sh 
 
 # Start Xvfb and VNC server
-CMD [ "/bin/sh", "/init.sh"  ]
+CMD [ "/bin/sh", "/pyenv_init.sh"  ]

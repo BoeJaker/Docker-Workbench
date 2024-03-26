@@ -4,11 +4,14 @@
 # Ignore secrets directory
 **./secrets
 **.secrets
-**.htpasswd
-**./ssl_passwords.txt
-**./access
+**htpasswd
+**ssl_passwords.txt
+**access
+**cert.pem
+**key.pem
+**.log
 
-# Ignore config.py file
+# Ignore LLM config.py file contains secrets
 **config.py
 
 # Ignore Visual Studio Code files
@@ -18,7 +21,7 @@
 **./hooks
 
 # Ignore Fluentd configuration file
-**fluentd.conf
+# **fluentd.conf
 
 # Ignore PostgreSQL data directory
 **postgres/data/
