@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Sets up breakpoints for runtime inspection of processes
+
 function insert_lines_with_cursor() {
     file_path=$1
     lines_to_insert=("${@:2}")
@@ -8,7 +10,7 @@ function insert_lines_with_cursor() {
     echo "Content of $file_path:"
     echo "$content"
 
-    echo -e "\nSelect the line number where you want to insert the lines:"
+    echo -e "\nSelect the breakpoints you would lilke to add:"
     read -r line_number
 
     lines_to_insert=$(printf "%s\n" "${lines_to_insert[@]}")
