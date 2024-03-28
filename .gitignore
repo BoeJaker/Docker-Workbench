@@ -36,3 +36,8 @@
 
 # Ignore __pycache__ directory
 __pycache__
+htpasswd
+**.key
+**.pem
+**.log
+ssl_passwords.txt
