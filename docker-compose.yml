@@ -2,451 +2,10 @@ version: "3"
  
 services:
 
-# # Meta-Services
-#   metrics:
-#    image: tianon/true
-#    depends_on: [prometheus, kibana, elasticsearch]
-  
-#   logging:
-#     image: tianon/true
-#     depends_on: [logspout, fluentd, elasticsearch, postgres-log]
-
-#   networking:
-#     image: tianon/true
-#     depends_on: [twingate, ngrok, nginx, traefik, dashboard, cs-dashboard, crowdsec]
-    
-#     #dns-sinkhole, mitm]
-
-#   development:
-#     image: tianon/true
-#     depends_on: [dev-environment, cve-database]
-
-#   databases:
-#     image: tianon/true
-#     depends_on: [cve-database, postgres-log]
-
-#   retroboe:
-#     image: tianon/true
-#     depends_on: [game-scanner]
-
-  # portainer:
-  #   image: portainer/portainer-ce
-  #   ports:
-  #     - 9000:9000
-  #   depends_on:
-  #     - portainer-agent
-
-  # portainer-agent:
-  #   image:  portainer/agent:2.19.4
-  #   container_name: portainer_agent
-  #   ports:
-  #     - 9001:9001 
-  #   restart: always 
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     - /var/lib/docker/volumes:/var/lib/docker/volumes
-  # # Services - Database
-  # # ============================
-
-  # postgres-log:
-  #   # Log Database
-  #   image: postgres:latest
-  #   volumes:
-  #     - ./services/postgres/data:/var/lib/postgresql/data  
-  #     - ./services/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
-  #   environment:
-  #     - POSTGRES_USER=${POSTGRES_LOG_USER}
-  #     - POSTGRES_PASSWORD=${POSTGRES_LOG_PASSWORD}
-  #   # ports:
-  #   #   - ${POSTGRES_LOG_PORT}:5432
-  #   logging:
-  #     driver: json-file 
-  #   restart: always
-  #   # deploy:  
-  #   #   resources:
-  #   #     limits:
-  #   #       cpus: '0.2'    # Limits the container to use up to 0.2 CPU cores
-  #   #       memory: '256M'  # Limits the container to use up to 256 MB of memory
-  #   #     reservations:
-  #   #       cpus: '0.1'    # Reserves at least 0.1 CPU cores for the container
-  #   #       memory: '128M'  # Reserves at least 128 MB of memory for the container
-  #   # labels:
-  #   #   - "traefik.enable=true"
-  #   #   - "traefik.http.routers.postgres-log.rule=Host(`postgres-log.localhost`, `postgres-log.traefik.internal`) || PathPrefix(`/postgres-log`)"
-  #   #   - "traefik.http.services.postgres-log.loadbalancer.server.port=5432"
-  #   #   - "traefik.http.services.postgres-log.loadbalancer.server.scheme=https"
-  #   #   - "traefik.http.middlewares.postgres-log.stripprefix.prefixes=/postgres-log"
-  #   #   - "traefik.http.middlewares.postgres-log.stripprefix.forceSlash=false"
-  #   #   - "traefik.http.routers.postgres-log.middlewares=postgres-log"
-
-  
-  # # Services - Logging
-  # # ============================
-
-  # logspout:
-  #   # Log collector
-  #   image: gliderlabs/logspout:latest
-  #   ports:
-  #     - ${LOGSPOUT_PORT}:514/udp
-  #   depends_on:
-  #     - postgres-log
-  #   links:
-  #     - "postgres-log"
-  #   volumes:
-  #    - //var/run/docker.sock:/var/run/docker.sock
-  #   command: syslog://${POSTGRES_LOG_USER}:${POSTGRES_LOG_PASSWORD}@postgres-log:5432/logs/logspout
-  #   # labels:
-  #   #   - "traefik.enable=true"
-  #   #   - "traefik.http.routers.logspout.rule=Host(`logspout.localhost`, `logspout.traefik.internal`, `logspout.int`) || PathPrefix(`/logspout`)"
-  #   #   - "traefik.http.services.logspout.loadbalancer.server.port=514/udp"
-  #   #   - "traefik.http.routers.logspout.entrypoints=web"
-  #   #   - "traefik.http.middlewares.logspout.stripprefix.prefixes=/logspout"
-  #   #   - "traefik.http.middlewares.logspout.stripprefix.forceSlash=false"
-  #   #   - "traefik.http.routers.logspout.middlewares=logspout"
-
-  # fluentd:
-  #   # Log collector
-  #   build: 
-  #     context: ./
-  #     dockerfile: ./services/fluentd/.Dockerfile
-  #   environment:
-  #     - LOG_DATABASE_NAME=${LOG_DATABASE_NAME}
-  #     - LOG_DATABASE_USER=${LOG_DATABASE_USER}
-  #     - LOG_DATABASE_PASSWORD=${LOG_DATABASE_PASSWORD}
-  #     - LOG_DATABASE_TABLE=${LOG_DATABASE_TABLE}
-  #   volumes:
-  #     - ./services/fluentd/fluent.conf:/fluentd/etc/fluent.conf
-  #   depends_on:
-  #     - ${LOG_SERVICE}
-  #   links:
-  #     - "elasticsearch"
-  #   # ports:
-  #   #   - "${FLUENTD_PORT}:24224"
-  #   #   - "${FLUENTD_PORT}:24224/udp"
-  #   logging:
-  #     driver: json-file
-  #   restart: always
-  #   # labels:
-  #   #   - "traefik.enable=true"
-  #   #   - "traefik.http.routers.fluentd.rule=Host(`fluentd.localhost`, `fluentd.traefik.internal`, `fluentd.int`) || PathPrefix(`/fluentd`)"
-  #   #   - "traefik.http.services.fluentd.loadbalancer.server.port=24223"
-  #   #   - "traefik.http.routers.fluentd.entrypoints=web"
-  #   #   - "traefik.http.middlewares.fluentd.stripprefix.prefixes=/fluentd"
-  #   #   - "traefik.http.middlewares.fluentd.stripprefix.forceSlash=false"
-  #   #   - "traefik.http.routers.fluentd.middlewares=fluentd"
-  #   networks:
-  #     - traefik
-  # # Services - Metrics
-  # # ============================
-
-  # elasticsearch:
-  #   # Data Search
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.13.1
-  #   container_name: elasticsearch
-  #   environment:
-  #     - "discovery.type=single-node"
-  #     - "XPACK_REPORTING_ENABLED=false"
-  #     - "XPACK_SECURITY_ENABLED=false"
-  #     - "XPACK_WATCHER_ENABLED=false"
-  #   # ports:
-  #   #   - "${ELASTICSEARCH_PORT}:9200"
-  #   logging:
-  #     driver: json-file 
-  #   restart: always
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.elasticsearch.rule=Host(`elasticsearch.localhost`, `elasticsearch.traefik.internal`, `elasticsearch.int`) || PathPrefix(`/elasticsearch`)"
-  #     - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
-  #     - "traefik.http.routers.elasticsearch.entrypoints=web"
-  #     - "traefik.http.middlewares.elasticsearch.stripprefix.prefixes=/elasticsearch"
-  #     - "traefik.http.middlewares.elasticsearch.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.elasticsearch.middlewares=elasticsearch"
-  #     - "traefik.http.routers.elasticsearch.elasticsearch=kibana, elasticsearch-auth"
-  #     - "traefik.http.middlewares.elasticsearch-auth.basicauth.usersfile=/htpasswd.txt"  
-  #   networks:
-  #     - traefik
-  
-
-
-  # kibana:
-  #   # Data Visualisation
-  #   image: docker.elastic.co/kibana/kibana:7.13.1
-  #   links:
-  #     - "elasticsearch"
-  #   environment:
-  #     - "XPACK_GRAPH_ENABLED=false"
-  #     - "XPACK_ML_ENABLED=false"
-  #     - "XPACK_REPORTING_ENABLED=false"
-  #     - "XPACK_SECURITY_ENABLED=false"
-  #     - "XPACK_WATCHER_ENABLED=false"
-  #   ports:
-  #     - "${KIBANA_PORT}:5601"
-  #   logging:
-  #     driver: json-file 
-  #   restart: always
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.kibana.rule=Host(`kibana.localhost`, `kibana.traefik.internal`, `kibana.int`) || PathPrefix(`/kibana`)"
-  #     - "traefik.http.services.kibana.loadbalancer.server.port=5601"
-  #     - "traefik.http.routers.kibana.entrypoints=web"
-  #     - "traefik.http.middlewares.kibana.stripprefix.prefixes=/kibana"
-  #     - "traefik.http.middlewares.kibana.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.kibana.middlewares=kibana"
-  #     - "traefik.http.routers.kibana.middlewares=kibana, kibana-auth"
-  #     - "traefik.http.middlewares.kibana-auth.basicauth.usersfile=/htpasswd.txt"
-  #   networks:
-  #     - traefik
-
-
-  # prometheus:
-  #   # Metric collector
-  #   image: prom/prometheus
-  
-  #   # ports:
-  #   #   - "${PROMETHEUS_PORT}:9090"
-  #   volumes: 
-  #     - ./services/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-  #   restart: always
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.prometheus.rule=Host(`prometheus.localhost`, `prometheus.traefik.internal`, `prometheus.int`) || PathPrefix(`/prometheus`)"
-  #     - "traefik.http.services.prometheus.loadbalancer.server.port=9090"
-  #     - "traefik.http.routers.prometheus.entrypoints=web"
-  #     - "traefik.http.middlewares.prometheus.stripprefix.prefixes=/prometheus"
-  #     - "traefik.http.middlewares.prometheus.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.prometheus.middlewares=prometheus"
-  #     - "traefik.http.routers.prometheus.middlewares=prometheus, prometheus-auth"
-  #     - "traefik.http.middlewares.prometheus-auth.basicauth.usersfile=/htpasswd.txt"
-  #   networks:
-  #     - traefik
-
-  
-
-  # Services - Networking
-  # ============================
-
-  # # Virtual Private Name Service
-  # twingate:
-  # # Allows name resolution of containers from external networks
-  #   image: twingate/connector:1
-  #   environment:
-  #     - TENANT_URL=${TENANT_URL}
-  #     - ACCESS_TOKEN=${ACCESS_TOKEN}
-  #     - REFRESH_TOKEN=${REFRESH_TOKEN}
-  #     - TWINGATE_LABEL_HOSTNAME=${TWINGATE_LABEL_HOSTNAME}
-  #   logging:
-  #     driver: json-file 
-  #   restart: always
-  #   networks:
-  #     - default
-
-  # # Ingress Controller
-  # ngrok:
-  #   image: ngrok/ngrok:latest
-  #   restart: unless-stopped
-  #   command:
-  #     - "http" 
-  #     - "--domain=fine-eternal-falcon.ngrok-free.app" 
-  #     - "192.168.3.201"
-  #     - "--oauth=google"
-  #     - "--oauth-allow-email=boejaker80@gmail.com"
-  #     # - "start"
-  #     # - "--all"
-  #     # - "--config"
-  #     # - "/etc/ngrok.yml"
-  #   environment:
-  #     - NGROK_AUTHTOKEN=${NGROK_TOKEN}
-  #     - HOSTNAME=fine-eternal-falcon.ngrok-free.app
-  #   volumes:
-  #     - ./ngrok.yml:/etc/ngrok.yml
-  #   depends_on:
-  #     - traefik
-  #     - nginx
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.ngrok.rule=Host(`ngrok.localhost`, `ngrok.traefik.internal`, `ngrok.int`) || PathPrefix(`/ngrok`)"
-  #     - "traefik.http.services.ngrok.loadbalancer.server.port=4040"
-  #     - "traefik.http.services.ngrok.loadbalancer.server.scheme=https"
-  #     - "traefik.http.middlewares.ngrok.stripprefix.prefixes=/ngrok"
-  #     - "traefik.http.middlewares.ngrok.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.ngrok.middlewares=ngrok"
-  #     - "traefik.http.routers.ngrok.middlewares=ngrok, ngrok-auth"
-  #     - "traefik.http.middlewares.ngrok-auth.basicauth.usersfile=/htpasswd.txt"
-  #     - "function.port.4040=Tunnel Monitoring"
-  #   networks:
-  #     - default
-  
-  # traefik:
-  #   image: traefik:latest
-  #   hostname: traefik
-  #   command:
-  #     - "--api.insecure=true"
-  #     - "--accesslog=true"
-  #     - "--tracing=true"
-  #     - "--tracing.serviceName=elasticsearch"
-  #     - "--accesslog.filepath=/var/log/access.log"
-  #     - "--serverstransport.insecureskipverify=true"
-  #     - "--providers.docker=true"
-  #     - "--providers.docker.exposedbydefault=false"
-  #     - "--entrypoints.web.address=:80"
-  #     - "--entrypoints.websecure.address=:443"
-  #     - "--entrypoints.websecure.http.tls.certResolver=myresolver"
-  #     - "--certificatesresolvers.myresolver.acme.email=jb.enquiries@proton.me"
-  #     - "--certificatesresolvers.myresolver.acme.storage=/etc/traefik/acme/acme.json"
-  #     - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-  #     - "--log.level=DEBUG"
-  #     - "--log.filePath=/var/log/traefik.log" 
-  #     - "--providers.file.directory=/dyn"
-  #     - "--experimental.plugins.fail2ban.modulename=github.com/tomMoulard/fail2ban"
-  #     - "--experimental.plugins.fail2ban.version=v0.7.1"
-  #     # - "--accesslog=true"
-  #     # - "--accesslog.bufferingsize=100"
-  #     # - "--accesslog.fields.defaultmode=keep"
-  #     # - "--accesslog.fields.headers.defaultmode=keep"
-  #     # - "--accesslog.fields.headers.names=Host,X-Real-IP,X-Forwarded-For,X-Forwarded-Proto"
-  #     # - "--configfile=/etc/traefik/traefik.yml"
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #     - "9191:8080"  # Traefik dashboard
-  #   volumes:
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #     # - ./services/traefik/traefik.yml:/etc/traefik/traefik.yml
-  #     # - /services/traefik/dynamic.yml:/etc/traefik/dynamic.yml
-  #     - ./services/traefik/dyn:/dyn
-  #     - ./services/traefik/logs/:/var/log/
-  #     - ./services/traefik/htpasswd:/htpasswd.txt
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.traefik.rule=Host(`traefik.localhost`, `traefik.traefik.internal`) || PathPrefix(`/traefik`)"
-  #     - "traefik.http.services.traefik.loadbalancer.server.port=8080"
-  #     - "traefik.http.services.traefik.loadbalancer.server.scheme=https"
-  #     - "certificatesResolvers.myresolver.acme.email=jb.enquiries@proton.me"
-  #     - "certificatesResolvers.myresolver.acme.storage=/etc/traefik/acme/acme.json"
-  #     - "certificatesResolvers.myresolver.acme.httpChallenge.entryPoint=web"
-  #     - "traefik.http.middlewares.traefik.stripprefix.prefixes=/traefik"
-  #     - "traefik.http.middlewares.traefik.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.traefik.middlewares=traefik, traefik-auth, my-fail2ban@file"
-  #     - "traefik.http.middlewares.traefik-auth.basicauth.usersfile=/htpasswd.txt"
-  #     - "function.port.8080=Reverse Proxy"
-  #   networks:
-  #     - traefik
-  #     - default
-
-#   whoami:
-#     image: "traefik/whoami"
-#     container_name: "simple-service"
-#     labels:
-#       - "traefik.enable=true"
-#       - "traefik.http.routers.whoami.rule=Host(`whoami.localhost`)"
-#       - "traefik.http.routers.whoami.rule=Host('whoami.traefik.internal')"
-#       - "traefik.http.routers.whoami.entrypoints=web"
-#       - "traefik.http.middlewares.whoami.stripprefix.prefixes=/whoami"
-#       - "traefik.http.middlewares.whoami.stripprefix.forceSlash=false"
-#       - "traefik.http.routers.whoami.middlewares=whoami"
-#       - "function.port.80=Internal test service (whoami)"
-#     networks:
-#       - traefik
-
-# # Reverse Proxy
-#   nginx:
-#     image: nginx:latest
-#     volumes:
-#       - ./nginx.conf:/etc/nginx/nginx.conf
-#       - ./htpasswd:/etc/nginx/.htpasswd
-#       - ./https/cert.pem:/etc/nginx/cert.pem
-#       - ./https/key.pem:/etc/nginx/key.pem
-#       - ./ssl_passwords.txt:/etc/nginx/ssl_passwords.txt
-#       - ./access:/etc/nginx/access.log
-#     # ports:
-#     #   - "8080:80"
-#     labels:
-#       - "traefik.enable=true"
-#       - "traefik.http.routers.nginx.rule=Host(`nginx.localhost`, `nginx.traefik.internal`) || PathPrefix(`/nginx`)"
-#       - "traefik.http.services.nginx.loadbalancer.server.port=8080"
-#       - "traefik.http.services.nginx.loadbalancer.server.scheme=https"
-#       - "traefik.http.middlewares.nginx.stripprefix.prefixes=/nginx"
-#       - "traefik.http.middlewares.nginx.stripprefix.forceSlash=false"
-#       - "traefik.http.routers.nginx.middlewares=nginx, nginx-auth"
-#       - "traefik.http.middlewares.nginx-auth.basicauth.usersfile=/htpasswd.txt"
-#       - "function.port.80=Reverse Proxy "
-#     networks:
-#       - traefik
-
-
-#   # DNS Blackhole
-#   dns-sinkhole:
-#     # Blocks malicious content and adverts from resolving nameservers
-#     image: patterns/sinkhole
-
-
-#   # Man in the Middle Proxy
-#   mitm:
-#     # Allows network traffic introspection
-#     image: mitmproxy/mitmproxy
-
-
-#   # VNC Routing
-#   vnc-server:
-#     # Forwards X11 sessions of containers over the VNC protocol
-#     container_name: vnc-server
-#     build:
-#       context: .
-#       dockerfile: ./services/vnc/.Dockerfile
-#     # Replace 'your-desktop-container' with the name of your container running the desktop environment
-#     environment:
-#       - DISPLAY=kali:1
-#       - DIMENSIONS="1280x720"
-#       - DEPTH=24
-#       # Add any other necessary environment variables
-#     ports:
-#       - "${VNC_SERVER_PORT}:5900"
-#     networks:
-#       - traefik
-
-
-  # ftp:
-  #   image: delfer/alpine-ftp-server
-  #   ports:
-  #     - "${FTP_PORT}:21"
-  #     - "${FTP_PORT_RANGE}:21000-21010"
-  #   # volumes:
-  #   #   - ${FTP_ROOT}:/ftp
-  #   environment:
-  #     - USERS=${FTP_USERS}
-  #   restart: unless-stopped
-  #   networks:
-  #     - traefik
-
-  #   healthcheck:
-  #     test: curl --fail ftp://localhost:21 || exit 1
-  #     interval: 180s
-  #     retries: 5
-  #     start_period: 20s
-  #     timeout: 10s
-  #   tty: true
-  #   restart: unless-stopped
-
-    
-
-  # Services - Security
-  # =====================
-
-  # antivirus:
-  #   # Scans containers for threats
-  #   image: clamav/clamav
-  #   ports:
-  #     - ${ANTIVIRUS_PORT}:3310
-  #   volumes:
-  #     - /path/to/clamav/config:/etc/clamav
-  #   environment:
-  #     - CLAMAV_CONFIG_PATH=/etc/clamav
-  #   restart: always
-  #   networks:
-  #     - traefik
-
   dashboard:
+    container_name: dashboard
     hostname: dashboard
+    restart: unless-stopped
     build:
       context: ./services/dashboard/
       dockerfile: ./Dockerfile
@@ -459,12 +18,12 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
-    # ports:
-    #   - "81:5555"
+          fluentd-address: '192.168.3.201:24224'
+    ports:
+      - "81:5555"
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.dashboard.rule=Host(`dashboard.localhost`, `dashboard.traefik.internal`,`dashboard.int`) || PathPrefix(`/dashboard`)"
+      - "traefik.http.routers.dashboard.rule=Host(`dashboard.localhost`, `dashboard.traefik.internal`,`dashboard.int`)"
       - "traefik.http.services.dashboard.loadbalancer.server.port=5555"
       - "traefik.http.services.dashboard.loadbalancer.server.scheme=http"
       - "traefik.http.middlewares.dashboard.stripprefix.prefixes=/dashboard"
@@ -481,6 +40,7 @@ services:
   # ============================
 
   huggingface:
+    container_name: huggingface
     build:
       context: ./
       dockerfile: ./services/llm/huggingface/.Dockerfile
@@ -494,7 +54,7 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
+          fluentd-address: '192.168.3.201:24224'
 
 
   # Services Development Environment
@@ -502,6 +62,7 @@ services:
 
 
   vulnlab:
+    container_name: vulnlab
     image: yavuzlar/vulnlab:latest
     # ports:
     #   - 1337:80
@@ -510,7 +71,7 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
+          fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.vulnlab.rule=Host(`vulnlab.localhost`, `vulnlab.int`, `vulnlab.traefik.internal`) || PathPrefix(`/vulnlab`)"
@@ -522,33 +83,33 @@ services:
     networks:
       - traefik
 
-  # cve-database:
-  #   build:
-  #     context: ./
-  #     dockerfile: ./services/cve_database/.Dockerfile
-  #   environment:
-  #     - DB_HOST=${LOG_DATABASE}
-  #     - DB_NAME=cve
-  #     - DB_USER=${LOG_DATABASE_USER}
-  #     - DB_PASSWORD=${LOG_DATABASE_PASSWORD}
-  #   # ports:
-  #   #   - "5433:5433"
-  #   entrypoint: ["python","/update_cve_db.py"]
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.cve-database.rule=Host(`cve-database.localhost`, `cvedb.int`, `cve-database.traefik.internal`) || PathPrefix(`/cvedatabase`)"
-  #     - "traefik.http.services.cve-database.loadbalancer.server.port=5433"
-  #     - "traefik.http.routers.cve-database.entrypoints=web"
-  #     - "traefik.http.middlewares.cve-database.stripprefix.prefixes=/cve-database"
-  #     - "traefik.http.middlewares.cve-database.stripprefix.forceSlash=false"
-  #     - "traefik.http.routers.cve-database.middlewares=cve-database"
-  #   networks:
-  #     - traefik
+  it-tools:
+    container_name: it-tools
+    image: corentinth/it-tools:latest
+    restart: unless-stopped
+    logging:
+        driver: fluentd
+        options:
+          fluentd-async-connect: 'true'
+          fluentd-address: '192.168.3.201:24224'
+    ports:
+      - 8880:80
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tools.rule=Host(`tools.localhost`, `tools.int`, `tools.traefik.internal`) || PathPrefix(`/tools`)"
+      - "traefik.http.services.tools.loadbalancer.server.port=80"
+      - "traefik.http.routers.tools.entrypoints=web"
+      - "traefik.http.middlewares.tools.stripprefix.prefixes=/tools"
+      - "traefik.http.middlewares.tools.stripprefix.forceSlash=false"
+      - "function.port.80=Vulnerability Playground"
+    networks:
+      - traefik
 
   dev-environment:
     image: codercom/code-server:latest
     container_name: dev-environment
     user: 1000:1000
+    restart: unless-stopped
     environment:
       - DEV_HTTP_PORT=${DEV_HTTP_PORT}
       - IP_ADDRESS=${IP_ADDRESS}
@@ -563,7 +124,7 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
+          fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.dev-environment.rule=Host(`dev-environment.localhost`, `dev-environment.traefik.internal`, `dev-environment.int`) || PathPrefix(`/dev-environment`)"
@@ -593,7 +154,7 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
+          fluentd-address: '192.168.3.201:24224'
     # ports:
     #   - "5001:5000"
     labels:
@@ -609,6 +170,7 @@ services:
       - traefik
 
   game-scanner:
+    container_name: game-scanner
     build:
       context: ./services/game_scanner/
       dockerfile: ./Dockerfile
@@ -625,7 +187,7 @@ services:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
-          fluentd-address: '172.23.0.3:24224'
+          fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.game-scanner.rule=Host(`game-scanner.localhost`, `game-scanner.traefik.internal`, `game-scanner.int`) || PathPrefix(`/game-scanner`)"
@@ -637,6 +199,7 @@ services:
       - "function.port.5000=Retroboe Video Game Scanner"
     networks:
       - traefik
+      - webrequests
 
   # Servers
   # ==============================
@@ -735,39 +298,6 @@ services:
     # command: /bin/bash
     tty: true
 
-
-  # Clients - VNC
-  # ===================================
-
-  # vnc:
-  #   image: dorowu/ubuntu-desktop-lxde-vnc
-  #   ports:
-  #     - "6080:80"
-  #   volumes:
-  #     - /dev/shm:/dev/shm
-  #   restart: unless-stopped
-  
-  # kali:
-  #   build:
-  #     context: ./
-  #     dockerfile: ./client/kali/.Dockerfile
-  #   ports: 
-  #     - ${KALI_PORT}:5901
-  #     - ${KALIX11_PORT}:6000
-  #     # - ${KALISSH_PORT}:22
-  #   cap_add:
-  #     - "NET_RAW" 
-  #     - "NET_ADMIN"
- 
-    # volumes:
-    #   - ./client/kali/app:/root 
-    # environment:
-    #   - USER:${KALI_USER}
-    #   - PASSWORD:${KALI_PASSWORD}
-    # tty: true
-    # restart: unless-stopped
-
-
 # Volumes
 # ==============================
 volumes:
@@ -784,6 +314,9 @@ volumes:
 # Networks
 # ==============================
 networks:
+
+  webrequests:
+    # external: true
 
   logging:  
     external: true

@@ -35,3 +35,4 @@ RUN openssl req -x509 -newkey rsa:4096 -keyout /key.pem -out /cert.pem -days 365
 
 # Run script.py when the container launches
 CMD ["sh", "-c", "while :; do sleep 10; done"]
+# CMD ["sh", "-c", "python /app/gsheetoauth.py"]

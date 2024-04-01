@@ -10,4 +10,5 @@ RUN pip install docker flask
 # COPY ./templates /templates
 # Run script.py when the container launches
 # CMD ["python3", "/Landing_Page.py"]
-CMD ["sh", "-c", "while :; do sleep 10; done"]
+# CMD ["sh", "-c", "while :; do sleep 10; done"]
+CMD ["sh", "-c", "python /Landing_Page.py"]
