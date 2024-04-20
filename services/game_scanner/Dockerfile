@@ -1,5 +1,16 @@
 # Use an official Python runtime as a parent image
-FROM python:3.8-slim
+FROM python:3.8-slim as secret-bootstrap
+RUN  export HOSTNAME=game-scanner
+
+COPY vault-bootstrap/bootstrap.sh /secret/bootstrap.sh
+COPY vault-bootstrap/bootstrap.env /secret/bootstrap.env
+
+RUN chown -R root /secret
+RUN chmod +x  /secret/bootstrap.sh
+
+RUN apt update && apt install bash openssl gpg curl -y
+
+FROM secret-bootstrap as base
 
 RUN apt-get update && apt-get install -y \
     wget \
@@ -25,7 +36,7 @@ RUN CHROMEDRIVER_VERSION=$(wget -q -O - https://chromedriver.storage.googleapis.
 ENV PATH="/usr/local/bin:${PATH}"
 
 # Copy the current directory contents into the container at /app
-COPY ./app/requirements.txt /app/requirements.txt
+COPY ./services/game_scanner/app/requirements.txt /app/requirements.txt
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r /app/requirements.txt
@@ -33,6 +44,7 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 RUN openssl req -x509 -newkey rsa:4096 -keyout /key.pem -out /cert.pem -days 365 -passout pass:password -subj "/CN=example.com/O=My Organization/C=US"
 
-# Run script.py when the container launches
-CMD ["sh", "-c", "while :; do sleep 10; done"]
-# CMD ["sh", "-c", "python /app/gsheetoauth.py"]
+
+WORKDIR /secret
+RUN /secret/bootstrap.sh
+ENTRYPOINT tail -f /dev/null

@@ -3,6 +3,7 @@ version: "3"
 services:
 
   dashboard:
+    user: "1000" # Security measure: Run as non-root
     container_name: dashboard
     hostname: dashboard
     restart: unless-stopped
@@ -10,7 +11,14 @@ services:
       context: ./services/dashboard/
       dockerfile: ./Dockerfile
     # working_dir: /app
+    ports:
+      - "81:5555"
+    networks:
+      - traefik
+    command: ["/bootstrap.sh","python /Landing_Page.py"]
     volumes:
+      - ./vault-bootstrap/bootstrap.sh:/bootstrap.sh
+      - ./vault-bootstrap/bootstrap.env:/bootstrap.env
       - /var/run/docker.sock:/var/run/docker.sock
       - ./services/dashboard/Landing_Page.py:/Landing_Page.py
       - ./services/dashboard/templates/:/templates
@@ -19,27 +27,27 @@ services:
         options:
           fluentd-async-connect: 'true'
           fluentd-address: '192.168.3.201:24224'
-    ports:
-      - "81:5555"
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.dashboard.rule=Host(`dashboard.localhost`, `dashboard.traefik.internal`,`dashboard.int`)"
+      - "traefik.http.routers.dashboard.tls=true"
+      - "traefik.http.routers.dashboard.middlewares=dashboard, dashboard-auth"
+
       - "traefik.http.services.dashboard.loadbalancer.server.port=5555"
       - "traefik.http.services.dashboard.loadbalancer.server.scheme=http"
+
       - "traefik.http.middlewares.dashboard.stripprefix.prefixes=/dashboard"
       - "traefik.http.middlewares.dashboard.stripprefix.forceSlash=false"
-      - "traefik.http.routers.dashboard.middlewares=dashboard, dashboard-auth, my-fail2ban@file"
       - "traefik.http.middlewares.dashboard-auth.basicauth.usersfile=/htpasswd.txt"
-      - "function.port.5555=Webpage that lists all services"
-    networks:
-      - traefik
-      # - logging
+
   
   
   # Services - LLM
   # ============================
 
   huggingface:
+    user: "1000" # Security measure: Run as non-root
     container_name: huggingface
     build:
       context: ./
@@ -62,11 +70,20 @@ services:
 
 
   vulnlab:
+    # user: "1000" # Security measure: Run as non-root
     container_name: vulnlab
-    image: yavuzlar/vulnlab:latest
+    hostname:  vulnlab  
+    build:
+      context: ./
+      dockerfile: ./services/vulnlab/.Dockerfile
     # ports:
     #   - 1337:80
+    environment:
+      - NAME=vulnlab # used in bootstrap
     restart: unless-stopped
+    networks:
+      - traefik
+      - vault
     logging:
         driver: fluentd
         options:
@@ -74,52 +91,75 @@ services:
           fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.vulnlab.rule=Host(`vulnlab.localhost`, `vulnlab.int`, `vulnlab.traefik.internal`) || PathPrefix(`/vulnlab`)"
+      - "traefik.http.routers.vulnlab.tls=true"
+      - "traefik.http.routers.vulnlab.tls.certresolver=myresolver"
       - "traefik.http.services.vulnlab.loadbalancer.server.port=80"
-      - "traefik.http.routers.vulnlab.entrypoints=web"
+      # - "traefik.http.routers.vulnlab.entrypoints=web"
       - "traefik.http.middlewares.vulnlab.stripprefix.prefixes=/vulnlab"
       - "traefik.http.middlewares.vulnlab.stripprefix.forceSlash=false"
       - "function.port.80=Vulnerability Playground"
-    networks:
-      - traefik
+
 
   it-tools:
+    # user: "1000" # Security measure: Run as non-root
     container_name: it-tools
-    image: corentinth/it-tools:latest
+    hostname:  it-tools  
+    build:
+      context: ./
+      dockerfile: ./services/it-tools/.Dockerfile
     restart: unless-stopped
+    ports:
+      - 8880:80
+    networks:
+      - traefik
+      - vault
+    # volumes:
+    #   - ./vault-bootstrap/bootstrap.sh:/secret/bootstrap.sh
+    #   - ./vault-bootstrap/bootstrap.env:/secret/bootstrap.env
     logging:
         driver: fluentd
         options:
           fluentd-async-connect: 'true'
           fluentd-address: '192.168.3.201:24224'
-    ports:
-      - 8880:80
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.tools.rule=Host(`tools.localhost`, `tools.int`, `tools.traefik.internal`) || PathPrefix(`/tools`)"
+      
+      - "traefik.http.routers.tools.tls=true"
+      - traefik.http.routers.tools.tls.certresolver=myresolver
       - "traefik.http.services.tools.loadbalancer.server.port=80"
-      - "traefik.http.routers.tools.entrypoints=web"
+      # - "traefik.http.routers.tools.entrypoints=web"
       - "traefik.http.middlewares.tools.stripprefix.prefixes=/tools"
       - "traefik.http.middlewares.tools.stripprefix.forceSlash=false"
       - "function.port.80=Vulnerability Playground"
-    networks:
-      - traefik
+
 
   dev-environment:
-    image: codercom/code-server:latest
+    # user: "1000" # Security measure: Run as non-root
     container_name: dev-environment
+    hostname: dev-environment
+    build:
+      context: ./
+      dockerfile: ./services/dev-environment/.Dockerfile
     user: 1000:1000
     restart: unless-stopped
     environment:
       - DEV_HTTP_PORT=${DEV_HTTP_PORT}
       - IP_ADDRESS=${IP_ADDRESS}
-    ports:
-      - "${DEV_ENVIRONMENT_PORT}:8080"
-    volumes:
-      -  ${DEV_ROOT}:/home/coder/
-    environment:
       - DOCKER_USER=1000
       - PASSWORD=${ADMIN_PASSWORD}
+      # - CERT_FILE=/etc/ssl/certs/cert.pem
+      # - KEY_FILE=/etc/ssl/private/key.pem
+    ports:
+      - "${DEV_ENVIRONMENT_PORT}:8080"
+    networks:
+      - traefik
+      - vault
+    volumes:
+      -  ${DEV_ROOT}:/home/coder/
     logging:
         driver: fluentd
         options:
@@ -127,18 +167,22 @@ services:
           fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.dev-environment.rule=Host(`dev-environment.localhost`, `dev-environment.traefik.internal`, `dev-environment.int`) || PathPrefix(`/dev-environment`)"
+      # - "traefik.http.routers.dev-environment.tls=true"
+      - "traefik.http.routers.dev-environment.middlewares=dev-environment, dev-environment-auth, test-ipwhitelist"
+
       - "traefik.http.services.dev-environment.loadbalancer.server.port=8080"
       - "traefik.http.services.dev-environment.loadbalancer.server.scheme=http"
+
       - "traefik.http.middlewares.dev-environment.stripprefix.prefixes=/dev-environment"
       - "traefik.http.middlewares.dev-environment.stripprefix.forceSlash=false"
-      - "traefik.http.routers.dev-environment.middlewares=dev-environment, dev-environment-auth"
+      - "traefik.http.middlewares.test-ipwhitelist.ipwhitelist.sourcerange=127.0.0.1/32, 192.168.3.201, 192.168.3.196"
       - "traefik.http.middlewares.dev-environment-auth.basicauth.usersfile=/htpasswd.txt"
-      - "function.port.8080=Development Environment"
-    networks:
-      - traefik
+
 
   python-bootstrap:
+    user: "1000" # Security measure: Run as non-root
     hostname: python-bootstrap
     build:
       context: ./services/python_bootstrap/
@@ -157,23 +201,30 @@ services:
           fluentd-address: '192.168.3.201:24224'
     # ports:
     #   - "5001:5000"
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.python-bootstrap.rule=Host(`python-bootstrap.localhost`, `python-bootstrap.traefik.internal`, `pythonbootstrap.int`) || PathPrefix(`/python-bootstrap`)"
-      - "traefik.http.services.python-bootstrap.loadbalancer.server.port=5000"
-      - "traefik.http.services.python-bootstrap.loadbalancer.server.scheme=https"
-      - "traefik.http.middlewares.python-bootstrap.stripprefix.prefixes=/python-bootstrap"
-      - "traefik.http.middlewares.python-bootstrap.stripprefix.forceSlash=false"
-      - "traefik.http.routers.python-bootstrap.middlewares=python-bootstrap"
-      - "function.port.5000=Python Bootstrap Environmet"
     networks:
       - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.python-bootstrap.rule=Host(`python-bootstrap.localhost`, `python-bootstrap.traefik.internal`, `pythonbootstrap.int`) || PathPrefix(`/python-bootstrap`)"
+      - "traefik.http.routers.python-bootstrap.tls=true"
+      - "traefik.http.routers.python-bootstrap.middlewares=python-bootstrap"
+
+      - "traefik.http.services.python-bootstrap.loadbalancer.server.port=5000"
+      - "traefik.http.services.python-bootstrap.loadbalancer.server.scheme=https"
+
+      - "traefik.http.middlewares.python-bootstrap.stripprefix.prefixes=/python-bootstrap"
+      - "traefik.http.middlewares.python-bootstrap.stripprefix.forceSlash=false"
+
 
   game-scanner:
+    # user: "1000" # Security measure: Run as non-root
+    #note the above is disabled because the tls cert chain module needs root - need to find workaround
     container_name: game-scanner
+    hostname: game-scanner
     build:
-      context: ./services/game_scanner/
-      dockerfile: ./Dockerfile
+      context: ./
+      dockerfile: ./services/game_scanner/Dockerfile
     working_dir: /app
     volumes:
       - ./services/game_scanner/app:/app
@@ -181,8 +232,11 @@ services:
       - GIT_REPO_URL:""
       - GIT_PULL:"true"
       - MAIN_PY_FILE:"gsheetoauth.py"
-    # ports:
-    #   - "5000:5000"   
+    ports:
+      - "5000:5000"  
+    networks:
+      - traefik
+      # - webrequests 
     logging:
         driver: fluentd
         options:
@@ -190,20 +244,22 @@ services:
           fluentd-address: '192.168.3.201:24224'
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.game-scanner.rule=Host(`game-scanner.localhost`, `game-scanner.traefik.internal`, `game-scanner.int`) || PathPrefix(`/game-scanner`)"
+      - "traefik.http.routers.game-scanner.tls=true"
+      - "traefik.http.routers.game-scanner.middlewares=game-scanner"
+
       - "traefik.http.services.game-scanner.loadbalancer.server.port=5000"
       - "traefik.http.services.game-scanner.loadbalancer.server.scheme=https"
+
       - "traefik.http.middlewares.game-scanner.stripprefix.prefixes=/game-scanner"
       - "traefik.http.middlewares.game-scanner.stripprefix.forceSlash=false"
-      - "traefik.http.routers.game-scanner.middlewares=game-scanner"
-      - "function.port.5000=Retroboe Video Game Scanner"
-    networks:
-      - traefik
-      - webrequests
+
 
   # Servers
   # ==============================
   alpine-server:
+    user: "1000" # Security measure: Run as non-root
     build:
       context: ./
       dockerfile: ./server/alpine/.Dockerfile
@@ -224,6 +280,7 @@ services:
 
 
   ubuntu-server:
+    user: "1000" # Security measure: Run as non-root
     build:
       context: ./
       dockerfile: ./server/ubnutu/.Dockerfile
@@ -246,6 +303,7 @@ services:
   # ==============================
  
   android-client:
+    user: "1000" # Security measure: Run as non-root
     build:
       context: ./
       dockerfile: ./client/android/.Dockerfile
@@ -261,6 +319,7 @@ services:
       - CLIENT_MODE=${CLIENT_MODE}
 
   osx-client:
+    user: "1000" # Security measure: Run as non-root
     build:
       context: ./
       dockerfile: ./client/osx/.Dockerfile
@@ -277,6 +336,7 @@ services:
 
 
   ubuntu-client:
+    user: "1000" # Security measure: Run as non-root
     build:
       context: ./
       dockerfile: ./client/ubuntu/.Dockerfile
@@ -326,7 +386,10 @@ networks:
 
   traefik:
     external: true
-
+  
+  vault:
+    external: true
+  
 
 # Example composition (old)
 #======================
