@@ -28,17 +28,7 @@ pyenv global system
 
 # # Change python path
 cd /msploitego/src/msploitego/transforms 
-exec /root/change_python_version.sh
-
-# echo "select an install size, light, default or large"
-# read mode
-
-# [ $mode -eq "default" ]{
-#     apt-get install kali-linux-default
-# }
-# [ $mode -eq "large" ]{
-#     apt-get install kali-linux-large
-# }
+# exec /root/change_python_version.sh
 
 # Start SSH session
 ssh start &&

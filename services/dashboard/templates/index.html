@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Services</title>
+    <style>
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            grid-gap: 20px;
+        }
+        .card {
+            border: 1px solid #ccc;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Available Services:</h1>
+    <div class="grid" id="serviceList">
+        {% for service in services %}
+                <div class="card">
+                    <a href="http://{{ service }}" onclick="showService('{{ service }}')">{{ service }}</a>
+                </div>
+
+        {% endfor %}
+    </div>
+    <div id="serviceDetails"></div>
+    <script>
+        // Get the hostname of the webpage being accessed and remove the subdomain
+        var host = window.location.hostname.match(/[^.]+\.[^.]+$/)[0];
+        console.log(host)
+        // Filter services based on the hostname
+        var services = document.querySelectorAll('#serviceList .card a');
+        services.forEach(function(service) {
+            var serviceHost = service.textContent.match(/[^.]+\.[^.]+$/)[0];
+            console.log(serviceHost)
+            if (serviceHost !== host) {
+                service.parentNode.style.display = 'none'; // Hide the service if it doesn't match the host
+            }
+        });
+
+        function showService(service) {
+            // Perform actions based on selected service (e.g., display details)
+            document.getElementById("serviceDetails").innerText = "Selected service: " + service;
+        }
+    </script>
+</body>
+</html>

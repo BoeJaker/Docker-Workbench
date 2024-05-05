@@ -4,8 +4,14 @@
 # Ignore secrets directory
 **./secrets
 **.secrets
+**htpasswd
+**ssl_passwords.txt
+**access
+**cert.pem
+**key.pem
+**.log
 
-# Ignore config.py file
+# Ignore LLM config.py file contains secrets
 **config.py
 
 # Ignore Visual Studio Code files
@@ -15,7 +21,7 @@
 **./hooks
 
 # Ignore Fluentd configuration file
-**fluentd.conf
+# **fluentd.conf
 
 # Ignore PostgreSQL data directory
 **postgres/data/
@@ -36,8 +42,13 @@
 
 # Ignore __pycache__ directory
 __pycache__
+<<<<<<< HEAD
 htpasswd
 **.key
 **.pem
 **.log
 ssl_passwords.txt
+=======
+
+**.snyk
+>>>>>>> ab85e1f6c04e554c0c3d67253422bbee2ea06736
